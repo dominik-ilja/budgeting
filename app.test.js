@@ -1,11 +1,8 @@
-const fs = require("node:fs");
-
-const { createApp } = require("./app.js");
+const { app } = require("./app.js");
 const request = require("supertest");
 const TestAgent = require("supertest/lib/agent.js");
 
 test("route: /", async () => {
-  const app = createApp();
   const response = await request(app).get("/");
 
   expect(response.text).toBe("Hello, world!");
@@ -16,7 +13,7 @@ describe("route: /upload", () => {
   let req;
 
   beforeEach(() => {
-    req = request(createApp());
+    req = request(app);
   });
 
   it("should return a 400 status with message when no file is included", async () => {
@@ -39,7 +36,7 @@ describe("route: /upload", () => {
     expect(response.status).toBe(400);
     expect(response.text).toBe('No CSV "type" was included');
   });
-  it("TO WRITE OUT", async () => {
+  it("Parses the CSV file and returns the correct JSON", async () => {
     const response = await req
       .post("/upload")
       .attach("file", "./test/chase-checkings.csv")
