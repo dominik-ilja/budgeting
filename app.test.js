@@ -1,4 +1,6 @@
+const fs = require("node:fs");
 const { app } = require("./app.js");
+const { MIME_TYPES } = require("./constants/mime-types.js");
 const request = require("supertest");
 const TestAgent = require("supertest/lib/agent.js");
 
@@ -8,13 +10,47 @@ test("route: /", async () => {
   expect(response.text).toBe("Hello, world!");
 });
 
-describe("route: /upload", () => {
-  /** @type {TestAgent} */
-  let req;
+describe("route: /register", () => {
+  const req = request(app);
 
-  beforeEach(() => {
-    req = request(app);
+  it("should return a 400 status when either username or password is missing", async () => {
+    const response = await req.post("/register");
+    expect(response.status).toBe(400);
   });
+  it("should return a 409 status code when username is already taken", async () => {
+    const response = await req
+      .post("/register")
+      .set("content-type", MIME_TYPES.JSON)
+      .send({ username: "username", password: "password" });
+    expect(response.status).toBe(409);
+  });
+  it("should return a 200 status when username doesn't exist", async () => {
+    const response = await req
+      .post("/register")
+      .send({ username: "username1", password: "password" });
+    expect(response.status).toBe(200);
+  });
+});
+
+describe("route: /login", () => {
+  const req = request(app);
+
+  it("should return a 200 status when username and password match entry in database", async () => {
+    const credentials = { username: "username1", password: "password" };
+
+    await req.post("/register").set("content-type", MIME_TYPES.JSON).send(credentials);
+
+    const response = await req
+      .post("/login")
+      .set("content-type", MIME_TYPES.JSON)
+      .send(credentials);
+
+    expect(response.status).toBe(200);
+  });
+});
+
+describe("route: /upload", () => {
+  const req = request(app);
 
   it("should return a 400 status with message when no file is included", async () => {
     const response = await req.post("/upload");
