@@ -2,10 +2,9 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
-const { MIME_TYPES } = require("./constants/mime-types");
+const { MIME_TYPES } = require("../constants/mime-types");
 
 const app = express();
-
 app.use(express.json());
 
 const database = [
@@ -54,19 +53,6 @@ app.post("/register", (request, response) => {
     password: hashedPassword,
   });
   return response.status(200).send();
-});
-
-app.post("/upload", upload.single("file"), (request, response) => {
-  if (request.file == null || request.file.mimetype !== MIME_TYPES.CSV) {
-    return response.status(400).send("No CSV file was included");
-  }
-  if (request.body.type == null) {
-    return response.status(400).send('No CSV "type" was included');
-  }
-
-  console.log(request.file.buffer.toString());
-  console.log(request.body.type);
-  response.status(200).send("Looks good to me");
 });
 
 module.exports.app = app;
