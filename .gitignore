@@ -2,3 +2,4 @@ node_modules
 notes.md
 temp
 temp.js
+.env
