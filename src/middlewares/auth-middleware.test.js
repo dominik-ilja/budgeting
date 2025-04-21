@@ -52,7 +52,7 @@ describe("Authentication middleware: validateJwt", () => {
     expect(res.sendStatus).toHaveBeenCalledWith(401);
   });
   it("should return a 401 when the bearer token is expired", async () => {
-    const token = jwt.sign({}, env.JWT.SECRET, { expiresIn: "1s" });
+    const token = jwt.sign({}, env.JWT_SECRET, { expiresIn: "1s" });
     await new Promise((resolve) => setTimeout(resolve, 2000));
     req.headers.authorization = `Bearer ${token}`;
 

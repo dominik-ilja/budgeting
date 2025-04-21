@@ -13,20 +13,11 @@ const schema = z.object({
   DB_PATH: z.string(),
   JWT_EXPIRES_IN: z.string(),
   JWT_SECRET: z.string().min(20),
-  PORT: z.number(),
+  PORT: z.preprocess((val) => parseInt(val, 10), z.number()),
 });
-
 const env = process.env;
-const envConfig = Object.freeze({
-  ADMIN_PASSWORD: env["ADMIN_PASSWORD"],
-  ADMIN_USERNAME: env["ADMIN_USERNAME"],
-  DB_PATH: env["DB_PATH"],
-  JWT_EXPIRES_IN: env["JWT_EXPIRES_IN"],
-  JWT_SECRET: env["JWT_SECRET"],
-  PORT: parseInt(env["PORT"]),
-});
+const parsedEnv = schema.safeParse(env);
 
-const parsedEnv = schema.safeParse(envConfig);
 if (!parsedEnv.success) {
   const errors = parsedEnv.error.flatten().fieldErrors;
 
@@ -40,4 +31,4 @@ The following variables are missing or invalid:\n`;
   throw new Error(errorMessage);
 }
 
-module.exports = { env: envConfig };
+module.exports = { env: parsedEnv.data };

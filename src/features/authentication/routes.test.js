@@ -27,13 +27,13 @@ describe(`route: ${ROUTE}`, () => {
   });
 });
 
-it.only("throw away", async () => {
+it("throw away", async () => {
   const req = request(app);
   const token = jwt.sign({ user_id: 1, role: "admin" }, "SECRET");
   // const response = await req.post("/dummy");
   // const response = await req.post("/dummy").set("authorization", "BEARER bad-token");
   const response = await req.post("/dummy").set("authorization", `BEARER ${token}`);
-  console.log(response.headers);
+  // console.log(response.headers);
 
   expect(response.status).toBe(200);
 });

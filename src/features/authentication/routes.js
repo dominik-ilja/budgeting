@@ -11,7 +11,7 @@ async function getUser(username, password) {
 }
 
 router.route("/login").post(async (request, response) => {
-  console.log(request.ip);
+  // console.log(request.ip);
 
   const body = request.body;
   if (!body || !body.username || !body.password) {
@@ -27,7 +27,7 @@ router.route("/login").post(async (request, response) => {
 });
 
 router.route("/dummy").post(validateJwt, (req, res) => {
-  console.log(req.user);
+  // console.log(req.user);
 
   return res.sendStatus(200);
 });

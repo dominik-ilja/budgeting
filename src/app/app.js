@@ -24,7 +24,7 @@ VALUES (@username, @password, @role)`
     role: "admin",
   });
 
-  console.log(db.prepare("SELECT * FROM users;").get());
+  // console.log(db.prepare("SELECT * FROM users;").get());
 
   // attach various middlewares, routes, etc.
 

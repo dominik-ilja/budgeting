@@ -31,7 +31,7 @@ function validateJwt(req, res, next) {
 
   try {
     const token = parts[1];
-    const decoded = jwt.verify(token, env.JWT.SECRET);
+    const decoded = jwt.verify(token, env.JWT_SECRET);
     req.user = decoded;
     console.log("User authenticated");
     next();
