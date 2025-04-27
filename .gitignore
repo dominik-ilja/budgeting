@@ -3,3 +3,6 @@ notes.md
 temp
 temp.js
 .env
+.env.test
+.env.development
+.env.production

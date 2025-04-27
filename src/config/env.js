@@ -1,11 +1,19 @@
-const z = require("zod");
+const { resolve } = require("node:path");
 const dotenv = require("dotenv");
+const z = require("zod");
 
-const { error } = dotenv.config();
+const APP_ENV = process.env.APP_ENV;
+let envName = ".env";
+let configPath = resolve(__dirname, `../../${envName}`);
 
-if (error) {
-  throw new Error(".env file not found");
+if (["production", "development", "test"].includes(APP_ENV)) {
+  envName = `.env.${APP_ENV}`;
+  configPath = resolve(__dirname, `../../${envName}`);
 }
+
+const { error } = dotenv.config({ path: configPath });
+
+if (error) throw new Error(`"${envName}" was not found at: "${configPath}"`);
 
 const schema = z.object({
   ADMIN_PASSWORD: z.string().min(20),
