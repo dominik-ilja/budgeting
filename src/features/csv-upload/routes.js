@@ -5,6 +5,7 @@ const { MIME_TYPES } = require("../../constants/mime-types");
 const { parseTransactionsCSV } = require("./parse-transactions-csv");
 const { validateJwt } = require("../../middlewares/auth-middleware");
 const { z } = require("zod");
+const { db } = require("../../loaders/sqlite");
 
 const router = express.Router();
 
@@ -56,7 +57,6 @@ router.route("/").post(validateJwt, upload.single("file"), (request, response) =
 
 router.route("/create-mapping").post(validateJwt, (request, response) => {
   const body = request.body;
-  console.log({ body });
 
   // request body needs to contain the name of the mapping and the required fields for purchases
   const schema = z.object({
@@ -73,6 +73,52 @@ router.route("/create-mapping").post(validateJwt, (request, response) => {
     console.log(results.error.errors);
     return response.sendStatus(400);
   }
+
+  const user = request.user;
+  const { mappingName, amount, category, date, description } = results.data;
+
+  try {
+    const info = db
+      .prepare(
+        `INSERT INTO import_profiles (name, target_table_id, user_id) VALUES
+(@name, 1, @userID);`
+      )
+      .run({
+        name: mappingName,
+        userID: user.id,
+      });
+
+    console.log(info);
+    console.log(db.prepare(`SELECT * FROM import_profiles;`).get());
+
+    // if category is undefined or null don't create the mapping
+    // if it is a string, then create the mapping
+
+    console.log(db.prepare(`SELECT * FROM column_mappings;`).all());
+    db.prepare(
+      `INSERT INTO column_mappings (
+    column_name,
+    import_profile_id,
+    target_column_name
+  ) VALUES
+  (@amount, @importProfileID, 'amount'),
+  (@date, @importProfileID, 'date'),
+  ${category != null ? "(@category, @importProfileID, 'category'),\n" : ""}
+  (@description, @importProfileID, 'description');`
+    ).run({
+      amount,
+      category,
+      date,
+      description,
+      importProfileID: info.lastInsertRowid,
+    });
+    console.log(db.prepare(`SELECT * FROM column_mappings;`).all());
+  } catch (error) {
+    console.log(error);
+    return response.sendStatus(400);
+  }
+
+  // create the entry
 
   response.sendStatus(200);
 });

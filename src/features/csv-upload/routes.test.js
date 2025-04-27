@@ -4,13 +4,11 @@ const { resolve } = require("path");
 const { router } = require("./routes");
 const jwt = require("jsonwebtoken");
 const { env } = require("../../config/env");
-const Database = require("better-sqlite3");
 
 const UPLOAD_ROUTE = "/upload";
 const CREATE_MAPPING_ROUTE = "/create-mapping";
 const FIXTURES_PATH = resolve(__dirname, "./__fixtures__");
 
-const db = new Database("test.db");
 const app = express();
 app.use(express.json());
 app.use("/", router);
@@ -100,5 +98,23 @@ describe.only(`route: ${CREATE_MAPPING_ROUTE}`, () => {
     expect(response1.status).toBe(400);
     expect(response2.status).toBe(400);
     expect(response3.status).toBe(400);
+  });
+  it("should create the mapping...", async () => {
+    const response1 = await req.send({
+      mappingName: "Chase Checkings",
+      amount: "Amount",
+      date: "Posting Date",
+      description: "Description",
+    });
+    const response2 = await resetRequest().send({
+      mappingName: "Chase Credit",
+      amount: "Amount",
+      category: "Category",
+      date: "Post Date",
+      description: "Description",
+    });
+
+    expect(response1.status).toBe(200);
+    expect(response2.status).toBe(200);
   });
 });

@@ -77,7 +77,7 @@ describe("Authentication middleware: validateJwt", () => {
   });
   it("should call next() with valid token and add user to request", () => {
     const data = { user: "user" };
-    const token = jwt.sign(data, env.JWT.SECRET, { expiresIn: "1h" });
+    const token = jwt.sign(data, env.JWT_SECRET, { expiresIn: "1h" });
     req.headers.authorization = `Bearer ${token}`;
 
     validateJwt(req, res, next);
