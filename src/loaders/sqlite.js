@@ -2,14 +2,13 @@ const { env } = require("../config/env");
 const bcrypt = require("bcrypt");
 const betterSQLite = require("better-sqlite3");
 
-// const db = require("better-sqlite3")(env.DB_PATH);
 /** @type {import("better-sqlite3").Database | null} */
 let db = null;
 
 const TABLES = Object.freeze({
   COLUMN_MAPPINGS: "column_mappings",
   IMPORT_PROFILES: "import_profiles",
-  PURCHASES: "purchases",
+  // PURCHASES: "purchases",
   ROLES: "roles",
   TARGET_TABLES: "target_tables",
   USERS: "users",
@@ -22,6 +21,7 @@ function getDatabase() {
   }
   return db;
 }
+
 function resetDatabase() {
   if (db) {
     db.close();
@@ -117,8 +117,9 @@ function initializeDatabase() {
     db.prepare(`INSERT INTO ${TABLES.TARGET_TABLES} (name) VALUES ('purchases')`).run();
   }
 
-  // sanity check
-  console.log(db.prepare(`SELECT * FROM ${TABLES.USERS};`).get());
+  if (process.env.APP_ENV === "test") {
+    console.log(db.prepare(`SELECT * FROM ${TABLES.USERS};`).get());
+  }
 }
 
-module.exports = { getDatabase, resetDatabase, initializeDatabase };
+module.exports = { getDatabase, resetDatabase, initializeDatabase, TABLES };

@@ -1,3 +1,5 @@
+const fs = require("node:fs");
+const { Readable } = require("node:stream");
 const express = require("express");
 const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
@@ -6,6 +8,7 @@ const { parseTransactionsCSV } = require("./parse-transactions-csv");
 const { validateJwt } = require("../../middlewares/auth-middleware");
 const { z } = require("zod");
 const { db } = require("../../loaders/sqlite");
+const csv = require("csv-parser");
 
 const router = express.Router();
 
@@ -36,24 +39,27 @@ function getMapping(userId, mappingId) {
   return MAPPINGS.CHASE_CHECKINGS;
 }
 
-// user should be able to create mapping / import profile all at once
-
-router.route("/").post(validateJwt, upload.single("file"), (request, response) => {
-  console.log("/");
-
+function validateFile(request, response, next) {
   if (request.file == null || request.file.mimetype !== MIME_TYPES.CSV) {
     return response.status(400).send("No CSV file was included");
   }
   if (request.body.mapping == null) {
     return response.status(400).send('No CSV "mapping" was included');
   }
-  // console.log(request.user);
 
-  // todo - retrieve corresponding user mapping - hard coded for now
-  const mapping = getMapping();
-  const parsed = parseTransactionsCSV(request.file.buffer.toString(), mapping);
-  response.status(200).send(parsed);
-});
+  next();
+}
+
+// user should be able to create mapping / import profile all at once
+
+router
+  .route("/")
+  .post(validateJwt, upload.single("file"), validateFile, (request, response) => {
+    // todo - retrieve corresponding user mapping - hard coded for now
+    const mapping = getMapping();
+    const parsed = parseTransactionsCSV(request.file.buffer.toString(), mapping);
+    response.status(200).send(parsed);
+  });
 
 router.route("/create-mapping").post(validateJwt, (request, response) => {
   const body = request.body;
@@ -122,5 +128,34 @@ router.route("/create-mapping").post(validateJwt, (request, response) => {
 
   response.sendStatus(200);
 });
+
+function parseCsv(file, cb) {
+  const entries = [];
+  const stream = Readable.from([file]);
+
+  return new Promise((resolve, reject) => {
+    stream
+      .pipe(csv())
+      .on("data", (data) => entries.push(cb(data)))
+      .on("error", reject)
+      .on("end", () => resolve(entries));
+  });
+}
+
+router
+  .route("/google-sheets")
+  .post(validateJwt, upload.single("file"), validateFile, async (request, response) => {
+    const mapping = JSON.parse(request.body.mapping);
+    const file = request.file;
+    const rows = await parseCsv(file.buffer, (row) => ({
+      date: row[mapping.date],
+      description: row[mapping.description],
+      amount: row[mapping.amount] * -1,
+      category: row[mapping.category] ?? "",
+    }));
+    const result = rows.map((row) => Object.values(row).join("\t")).join("\n");
+
+    response.status(200).send(result);
+  });
 
 module.exports = { router };

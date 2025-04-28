@@ -1,7 +1,11 @@
 const { env } = require("../config/env");
-const { getDatabase, resetDatabase, initializeDatabase } = require("./sqlite");
+const { getDatabase, resetDatabase, initializeDatabase, TABLES } = require("./sqlite");
 
 describe("Database initialization", () => {
+  beforeEach(() => {
+    resetDatabase();
+  });
+
   it("should create a default user and roles", () => {
     const db = getDatabase();
 
@@ -20,5 +24,15 @@ describe("Database initialization", () => {
     initializeDatabase();
     initializeDatabase();
   });
-  it.todo("should create all the required tables");
+  it("should create all the required tables", () => {
+    const db = getDatabase();
+
+    initializeDatabase();
+    const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all();
+    const tableNames = tables.map((table) => table.name);
+
+    for (const tableName of Object.values(TABLES)) {
+      expect(tableNames).toContain(tableName);
+    }
+  });
 });

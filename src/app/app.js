@@ -1,11 +1,13 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
-const { db } = require("../loaders/sqlite");
+const { initializeDatabase } = require("../loaders/sqlite");
 const { env } = require("../config/env");
 
 async function initializeApp() {
   const app = express();
   app.use(express.json());
+
+  initializeDatabase();
 
   // attach various middlewares, routes, etc.
 

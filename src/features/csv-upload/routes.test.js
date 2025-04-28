@@ -7,6 +7,7 @@ const { env } = require("../../config/env");
 
 const UPLOAD_ROUTE = "/upload";
 const CREATE_MAPPING_ROUTE = "/create-mapping";
+const GOOGLE_SHEETS_ROUTE = "/google-sheets";
 const FIXTURES_PATH = resolve(__dirname, "./__fixtures__");
 
 const app = express();
@@ -69,10 +70,10 @@ describe(`route: ${UPLOAD_ROUTE}`, () => {
   });
 });
 
-describe.only(`route: ${CREATE_MAPPING_ROUTE}`, () => {
+describe(`route: ${CREATE_MAPPING_ROUTE}`, () => {
   const user = {
     id: 1,
-    username: "user",
+    username: env.ADMIN_USERNAME,
     role: "admin",
   };
   const token = jwt.sign(user, env.JWT_SECRET);
@@ -116,5 +117,36 @@ describe.only(`route: ${CREATE_MAPPING_ROUTE}`, () => {
 
     expect(response1.status).toBe(200);
     expect(response2.status).toBe(200);
+  });
+});
+
+describe.only(`route: ${GOOGLE_SHEETS_ROUTE}`, () => {
+  const user = {
+    id: 1,
+    username: env.ADMIN_USERNAME,
+    role: "admin",
+  };
+  const token = jwt.sign(user, env.JWT_SECRET);
+  const attachmentName = "file";
+  const fieldName = "mapping";
+
+  it("should...", async () => {
+    const response = await request(app)
+      .post(GOOGLE_SHEETS_ROUTE)
+      .set("authorization", `BEARER ${token}`)
+      .attach(attachmentName, `${FIXTURES_PATH}/chase-checkings.csv`)
+      .field(
+        fieldName,
+        JSON.stringify({
+          amount: "Amount",
+          category: null,
+          date: "Posting Date",
+          description: "Description",
+        })
+      );
+
+    console.log([response.text, response.body]);
+
+    expect(response.status).toBe(200);
   });
 });
