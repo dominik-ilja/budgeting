@@ -1,94 +1,61 @@
+const request = require("supertest");
+const express = require("express");
 const jwt = require("jsonwebtoken");
 const { validateJwt } = require("./auth-middleware");
 const { env } = require("../config/env");
 
 describe("Authentication middleware: validateJwt", () => {
-  /** @type {import("express").Request} */
-  let req;
-  /** @type {import("express").Response} */
-  let res;
-  /** @type {import("express").NextFunction} */
-  let next;
-
-  beforeEach(() => {
-    req = { headers: {} };
-    res = {
-      setHeader: jest.fn().mockReturnThis(),
-      sendStatus: jest.fn().mockReturnThis(),
-    };
-    next = jest.fn();
-
-    jest.clearAllMocks();
+  const app = express();
+  app.use(express.json());
+  app.use("/", validateJwt, (req, res) => {
+    res.status(200).json({ user: req.user });
   });
 
-  test.todo(
-    "Responds with an unauthorized code when no authorization headers are included"
-  );
-  test.todo("Responds with an unauthorized code when authorization headers are invalid");
-  test.todo("Calls the next middleware when the JWT is valid");
+  describe("Requests with invalid authorization headers are unauthorized", () => {
+    test.each([
+      {
+        name: "No authorization headers",
+        headers: {},
+        expected: 'Bearer error="missing_token" error_description="Authentication required. No token was included."',
+      },
+      {
+        name: "No space in token",
+        headers: { authorization: "invalid" },
+        expected: `Bearer error="invalid_request" error_message="Invalid authorization format. Use 'Bearer <token>'"`,
+      },
+      {
+        name: 'No "Bearer" in token',
+        headers: { authorization: "invalid token" },
+        expected: `Bearer error="invalid_request" error_message="Invalid authorization format. Use 'Bearer <token>'"`,
+      },
+      {
+        name: "JWT is expired",
+        headers: { authorization: `Bearer ${jwt.sign({}, env.JWT_SECRET, { expiresIn: "-1s" })}` },
+        expected: `Bearer error="invalid_token" error_description="Token expired"`,
+      },
+      {
+        name: "JWT is invalid",
+        headers: { authorization: `Bearer ${jwt.sign({}, "invalid_secret")}` },
+        expected: `Bearer error="invalid_token" error_description="Invalid or malformed token"`,
+      },
+    ])("$name", async ({ expected, headers }) => {
+      const req = request(app).get("/");
+      Object.entries(headers).forEach(([key, value]) => req.set(key, value));
 
-  it("should return a 401 when no authorization headers are included", () => {
-    validateJwt(req, res, next);
+      const response = await req;
 
-    expect(res.setHeader).toHaveBeenCalledWith(
-      "WWW-Authenticate",
-      'Bearer error="missing_token" error_description="Authentication required. No token was included."'
-    );
-    expect(res.sendStatus).toHaveBeenCalledWith(401);
+      expect(response.status).toBe(401);
+      expect(response.headers["www-authenticate"]).toBe(expected);
+    });
   });
-  it("should return a 401 when the authentication header doesn't have two parts", () => {
-    req.headers.authorization = "invalid";
 
-    validateJwt(req, res, next);
+  test("Calls the next middleware when the JWT is valid", async () => {
+    const token = jwt.sign({ user: "user" }, env.JWT_SECRET, { expiresIn: "1h" });
+    const req = request(app).get("/").set("authorization", `Bearer ${token}`);
 
-    expect(res.setHeader).toHaveBeenCalledWith(
-      "WWW-Authenticate",
-      'Bearer error="invalid_request" error_message="Invalid authorization format. Use \'Bearer <token>\'"'
-    );
-  });
-  it(`should return a 401 when the authentication header doesn't use "bearer" as the authentication scheme`, () => {
-    req.headers.authorization = "invalid token";
+    const response = await req;
 
-    validateJwt(req, res, next);
-
-    expect(res.setHeader).toHaveBeenCalledWith(
-      "WWW-Authenticate",
-      'Bearer error="invalid_request" error_message="Invalid authorization format. Use \'Bearer <token>\'"'
-    );
-    expect(res.sendStatus).toHaveBeenCalledWith(401);
-  });
-  it("should return a 401 when the bearer token is expired", async () => {
-    const token = jwt.sign({}, env.JWT_SECRET, { expiresIn: "1s" });
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    req.headers.authorization = `Bearer ${token}`;
-
-    validateJwt(req, res, next);
-
-    expect(res.setHeader).toHaveBeenCalledWith(
-      "WWW-Authenticate",
-      `Bearer error="invalid_token" error_description="Token expired"`
-    );
-    expect(res.sendStatus).toHaveBeenCalledWith(401);
-  });
-  it("should return a 401 when the bearer token cannot be verified", () => {
-    const token = jwt.sign({}, "invalid_secret");
-    req.headers.authorization = `Bearer ${token}`;
-    validateJwt(req, res, next);
-
-    expect(res.setHeader).toHaveBeenCalledWith(
-      "WWW-Authenticate",
-      `Bearer error="invalid_token" error_description="Invalid or malformed token"`
-    );
-    expect(res.sendStatus).toHaveBeenCalledWith(401);
-  });
-  it("should call next() with valid token and add user to request", () => {
-    const data = { user: "user" };
-    const token = jwt.sign(data, env.JWT_SECRET, { expiresIn: "1h" });
-    req.headers.authorization = `Bearer ${token}`;
-
-    validateJwt(req, res, next);
-
-    expect(next).toHaveBeenCalled();
-    expect(req.user).toEqual(jwt.decode(token));
+    expect(response.status).toBe(200);
+    expect(response.body.user).toEqual(jwt.decode(token));
   });
 });
