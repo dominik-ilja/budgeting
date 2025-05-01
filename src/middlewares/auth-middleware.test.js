@@ -21,6 +21,12 @@ describe("Authentication middleware: validateJwt", () => {
     jest.clearAllMocks();
   });
 
+  test.todo(
+    "Responds with an unauthorized code when no authorization headers are included"
+  );
+  test.todo("Responds with an unauthorized code when authorization headers are invalid");
+  test.todo("Calls the next middleware when the JWT is valid");
+
   it("should return a 401 when no authorization headers are included", () => {
     validateJwt(req, res, next);
 
