@@ -45,31 +45,73 @@ function validateRequest(req, res, next) {
 }
 
 /**
+ * @param {string} str
+ */
+function formatNumber(str) {
+  let num = parseFloat(str);
+
+  if (Number.isNaN(num)) {
+    const msg = `The string "${str}" could not be converted to a number`;
+    throw new Error(msg);
+  }
+
+  num *= -1;
+
+  const value = num.toFixed(2);
+  const parts = value.split(".");
+  const decimal = parts[1];
+
+  if (!decimal) {
+    return value + ".00";
+  }
+  if (decimal.length === 1) {
+    return value + "0";
+  }
+  return value;
+}
+
+/**
  * @param {Readable} stream
- * @param {{[key: string]: string}} mapping
+ * @param {{ column: string, target: string, type: "date" | "number" | "string" }[]} mappings
  * @throws
  */
-async function parseCSV(stream, mapping) {
-  const rows = [];
-
+async function parseCSV(stream, mappings) {
   return new Promise((resolve, reject) => {
+    const rows = [];
+
     const parser = csv()
       .on("headers", (headers) => {
-        const keys = Object.keys(mapping);
-        const notFoundKeys = keys.filter((key) => !headers.includes(key));
+        const notFound = mappings.filter(({ column }) => !headers.includes(column));
 
-        if (notFoundKeys.length > 0) {
-          parser.destroy(new Error(`Headers not found in file: "${notFoundKeys.join(", ")}"`));
+        if (notFound.length > 0) {
+          const items = notFound.map((e) => e.column).join(", ");
+          const msg = `Headers not found in file: "${items}"`;
+          parser.destroy(new Error(msg));
         }
       })
       .on("data", (row) => {
-        rows.push(row);
+        const entry = {};
+        for (const { column, target, type } of mappings) {
+          let value = row[column];
+
+          if (type === "number") value = formatNumber(value);
+
+          entry[target] = value;
+        }
+        rows.push(entry);
       })
       .on("error", reject)
       .on("end", () => resolve(rows));
 
     stream.pipe(parser);
   });
+}
+
+/**
+ * @param {{[key: string]: string}[]} rows
+ */
+function createGoogleSheetsCSV(rows) {
+  return rows.map((row) => Object.values(row).join("\t")).join("\n");
 }
 
 /**
@@ -85,4 +127,4 @@ function routeHandler(req, res) {
 
 router.route("/").post(validateJwt, upload.single("file"), validateRequest, routeHandler);
 
-module.exports = { router, parseCSV };
+module.exports = { router, parseCSV, formatNumber, createGoogleSheetsCSV };
