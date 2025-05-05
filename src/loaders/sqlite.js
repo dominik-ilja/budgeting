@@ -14,9 +14,9 @@ const TABLES = Object.freeze({
   USERS: "users",
 });
 
-function getDatabase() {
+function getDatabase(path = env.DB_PATH) {
   if (!db) {
-    db = betterSQLite(env.DB_PATH);
+    db = betterSQLite(path);
     db.pragma("foreign_keys = 1");
   }
   return db;
@@ -30,8 +30,11 @@ function resetDatabase() {
   return getDatabase();
 }
 
-function initializeDatabase() {
-  const db = getDatabase();
+function initializeDatabase(options = {}) {
+  options.adminUsername = env.ADMIN_USERNAME;
+  options.adminPassword = env.ADMIN_PASSWORD;
+  options.databasePath = env.DB_PATH;
+  const db = getDatabase(options.da);
 
   // Create tables
   db.prepare(
@@ -60,22 +63,22 @@ function initializeDatabase() {
 
   db.prepare(
     `CREATE TABLE IF NOT EXISTS ${TABLES.IMPORT_PROFILES} (
-      id INTEGER PRIMARY KEY,
-      user_id INTEGER NOT NULL REFERENCES ${TABLES.USERS} (id),
-      target_table_id INTEGER NOT NULL REFERENCES ${TABLES.TARGET_TABLES} (id),
-      name TEXT NOT NULL
-    );`
+  id INTEGER PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES ${TABLES.USERS} (id),
+  target_table_id INTEGER NOT NULL REFERENCES ${TABLES.TARGET_TABLES} (id),
+  name TEXT NOT NULL
+);`
   ).run();
 
   db.prepare(
     `CREATE TABLE IF NOT EXISTS ${TABLES.COLUMN_MAPPINGS} (
-      id INTEGER PRIMARY KEY,
-      import_profile_id INTEGER NOT NULL REFERENCES ${TABLES.IMPORT_PROFILES} (id),
-      column_name TEXT NOT NULL,
-      target_column_name TEXT NOT NULL,
-      UNIQUE (import_profile_id, column_name),
-      UNIQUE (import_profile_id, target_column_name)
-    );`
+  id INTEGER PRIMARY KEY,
+  import_profile_id INTEGER NOT NULL REFERENCES ${TABLES.IMPORT_PROFILES} (id),
+  column_name TEXT NOT NULL,
+  target_column_name TEXT NOT NULL,
+  UNIQUE (import_profile_id, column_name),
+  UNIQUE (import_profile_id, target_column_name)
+);`
   ).run();
 
   // Insert if it doesn't already exist

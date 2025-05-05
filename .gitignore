@@ -6,3 +6,5 @@ temp.js
 .env.test
 .env.development
 .env.production
+.temp
+temp.db

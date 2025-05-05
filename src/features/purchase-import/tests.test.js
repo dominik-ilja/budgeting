@@ -1,12 +1,29 @@
-const { Readable } = require("stream");
-const { parseCSV, formatNumber, createGoogleSheetsCSV } = require("./purchase-import-routes");
+const fs = require("node:fs");
+const { resolve } = require("node:path");
+const { Readable } = require("node:stream");
+
+const betterSQLite = require("better-sqlite3");
+const { TABLES, initializeTables } = require("../../database/schemas");
+const {
+  createGoogleSheetsCSV,
+  createRouteHandler,
+  formatNumber,
+  ImportProfile,
+  Mapping,
+  parseCSV,
+  router,
+  SQLiteImportProfileRepository,
+} = require("./purchase-import-routes");
 
 describe("formatNumber", () => {
-  test.each([[""], ["abc"], ["%$#@asiut"]])("Throws an error for invalid inputs: '%s'", (str) => {
-    const result = () => formatNumber(str);
+  test.each([[""], ["abc"], ["%$#@asiut"]])(
+    "Throws an error for invalid inputs: '%s'",
+    (str) => {
+      const result = () => formatNumber(str);
 
-    expect(result).toThrow();
-  });
+      expect(result).toThrow();
+    }
+  );
   test.each([
     ["500.00", "-500.00"],
     ["1500", "-1500.00"],
@@ -92,16 +109,66 @@ Withdrawal,2025-03-24,Online Subscription,-12.99,Debit,3371.51,`,
         createMapping("Description", "description", "string"),
       ],
       [
-        { amount: "-4.75", category: "Food & Dining", date: "2025-03-20", description: "Coffee Shop" },
-        { amount: "-52.30", category: "Groceries", date: "2025-03-19", description: "Grocery Store" },
-        { amount: "-2500.00", category: "Income", date: "2025-03-18", description: "Salary Deposit" },
-        { amount: "-120.50", category: "Utilities", date: "2025-03-17", description: "Electric Bill" },
-        { amount: "-45.00", category: "Transport", date: "2025-03-16", description: "Gas Station" },
-        { amount: "-12.99", category: "Entertainment", date: "2025-03-15", description: "Online Subscription" },
-        { amount: "-89.99", category: "Shopping", date: "2025-03-14", description: "Retail Store" },
-        { amount: "-27.40", category: "Food & Dining", date: "2025-03-13", description: "Dining Out" },
-        { amount: "-500.00", category: "Investments", date: "2025-03-12", description: "Investment Deposit" },
-        { amount: "-75.00", category: "Insurance", date: "2025-03-11", description: "Car Insurance" },
+        {
+          amount: "-4.75",
+          category: "Food & Dining",
+          date: "2025-03-20",
+          description: "Coffee Shop",
+        },
+        {
+          amount: "-52.30",
+          category: "Groceries",
+          date: "2025-03-19",
+          description: "Grocery Store",
+        },
+        {
+          amount: "-2500.00",
+          category: "Income",
+          date: "2025-03-18",
+          description: "Salary Deposit",
+        },
+        {
+          amount: "-120.50",
+          category: "Utilities",
+          date: "2025-03-17",
+          description: "Electric Bill",
+        },
+        {
+          amount: "-45.00",
+          category: "Transport",
+          date: "2025-03-16",
+          description: "Gas Station",
+        },
+        {
+          amount: "-12.99",
+          category: "Entertainment",
+          date: "2025-03-15",
+          description: "Online Subscription",
+        },
+        {
+          amount: "-89.99",
+          category: "Shopping",
+          date: "2025-03-14",
+          description: "Retail Store",
+        },
+        {
+          amount: "-27.40",
+          category: "Food & Dining",
+          date: "2025-03-13",
+          description: "Dining Out",
+        },
+        {
+          amount: "-500.00",
+          category: "Investments",
+          date: "2025-03-12",
+          description: "Investment Deposit",
+        },
+        {
+          amount: "-75.00",
+          category: "Insurance",
+          date: "2025-03-11",
+          description: "Car Insurance",
+        },
       ],
     ],
   ])("Returns all the rows of the CSV file: %s", async (_, csv, mappings, expected) => {
@@ -116,16 +183,66 @@ Withdrawal,2025-03-24,Online Subscription,-12.99,Debit,3371.51,`,
 describe("createGoogleSheetsCSV", () => {
   test("Formats the input correctly", () => {
     const rows = [
-      { amount: "-4.75", category: "Food & Dining", date: "2025-03-20", description: "Coffee Shop" },
-      { amount: "-52.30", category: "Groceries", date: "2025-03-19", description: "Grocery Store" },
-      { amount: "-2500.00", category: "Income", date: "2025-03-18", description: "Salary Deposit" },
-      { amount: "-120.50", category: "Utilities", date: "2025-03-17", description: "Electric Bill" },
-      { amount: "-45.00", category: "Transport", date: "2025-03-16", description: "Gas Station" },
-      { amount: "-12.99", category: "Entertainment", date: "2025-03-15", description: "Online Subscription" },
-      { amount: "-89.99", category: "Shopping", date: "2025-03-14", description: "Retail Store" },
-      { amount: "-27.40", category: "Food & Dining", date: "2025-03-13", description: "Dining Out" },
-      { amount: "-500.00", category: "Investments", date: "2025-03-12", description: "Investment Deposit" },
-      { amount: "-75.00", category: "Insurance", date: "2025-03-11", description: "Car Insurance" },
+      {
+        amount: "-4.75",
+        category: "Food & Dining",
+        date: "2025-03-20",
+        description: "Coffee Shop",
+      },
+      {
+        amount: "-52.30",
+        category: "Groceries",
+        date: "2025-03-19",
+        description: "Grocery Store",
+      },
+      {
+        amount: "-2500.00",
+        category: "Income",
+        date: "2025-03-18",
+        description: "Salary Deposit",
+      },
+      {
+        amount: "-120.50",
+        category: "Utilities",
+        date: "2025-03-17",
+        description: "Electric Bill",
+      },
+      {
+        amount: "-45.00",
+        category: "Transport",
+        date: "2025-03-16",
+        description: "Gas Station",
+      },
+      {
+        amount: "-12.99",
+        category: "Entertainment",
+        date: "2025-03-15",
+        description: "Online Subscription",
+      },
+      {
+        amount: "-89.99",
+        category: "Shopping",
+        date: "2025-03-14",
+        description: "Retail Store",
+      },
+      {
+        amount: "-27.40",
+        category: "Food & Dining",
+        date: "2025-03-13",
+        description: "Dining Out",
+      },
+      {
+        amount: "-500.00",
+        category: "Investments",
+        date: "2025-03-12",
+        description: "Investment Deposit",
+      },
+      {
+        amount: "-75.00",
+        category: "Insurance",
+        date: "2025-03-11",
+        description: "Car Insurance",
+      },
     ];
     expected = `-4.75\tFood & Dining\t2025-03-20\tCoffee Shop
 -52.30\tGroceries\t2025-03-19\tGrocery Store
@@ -142,4 +259,166 @@ describe("createGoogleSheetsCSV", () => {
 
     expect(result).toBe(expected);
   });
+});
+
+describe("SQLiteImportProfileRepository", () => {
+  const dbPath = resolve(__dirname, "./test.db");
+  /** @type {import("better-sqlite3").Database} */
+  let db = null;
+
+  /** @param {import("better-sqlite3").Database} db */
+  function setupDatabase(db) {
+    initializeTables(db);
+    db.prepare(`INSERT INTO ${TABLES.ROLES} (name) VALUES ('admin');`).run();
+    db.prepare(
+      `INSERT INTO ${TABLES.USERS} (role_id, username, password)
+        VALUES (1, 'username', '123abc');`
+    ).run();
+    db.prepare(`INSERT INTO ${TABLES.TARGET_TABLES} (name) VALUES ('purchases');`).run();
+    db.prepare(
+      `INSERT INTO ${TABLES.IMPORT_PROFILES} (user_id, target_table_id, name) VALUES
+    (1, 1, 'Chase Checkings'),
+    (1, 1, 'Chase Credit'),
+    (1, 1, 'Discover Credit');`
+    ).run();
+    db.prepare(
+      `INSERT INTO ${TABLES.COLUMN_MAPPINGS}
+    (
+      import_profile_id,
+      column_name,
+      target_column_name,
+      data_type
+    ) VALUES
+    (1, 'Amount', 'amount', 'number'),
+    (1, 'Posting Date', 'date', 'date'),
+    (1, 'Description', 'description', 'string'),
+    (2, 'Amount', 'amount', 'number'),
+    (2, 'Category', 'category', 'string'),
+    (2, 'Post Date', 'date', 'date'),
+    (2, 'Description', 'description', 'string'),
+    (3, 'Amount', 'amount', 'number'),
+    (3, 'Category', 'category', 'string'),
+    (3, 'Post Date', 'date', 'date'),
+    (3, 'Description', 'description', 'string')
+    ;`
+    ).run();
+  }
+
+  beforeEach(() => {
+    db = betterSQLite(dbPath);
+  });
+
+  afterEach(() => {
+    db.close();
+    db = null;
+    fs.rmSync(dbPath);
+  });
+
+  test("", () => {
+    setupDatabase(db);
+    const importProfileRepo = new SQLiteImportProfileRepository(db);
+    const expected = [];
+
+    const result = importProfileRepo.all(100);
+
+    expect(result).toEqual(expected);
+  });
+  test("", () => {
+    setupDatabase(db);
+    const importProfileRepo = new SQLiteImportProfileRepository(db);
+    const expected = [
+      new ImportProfile(1, "Chase Checkings", [
+        new Mapping("Amount", "amount", "number"),
+        new Mapping("Posting Date", "date", "date"),
+        new Mapping("Description", "description", "string"),
+      ]),
+      new ImportProfile(2, "Chase Credit", [
+        new Mapping("Amount", "amount", "number"),
+        new Mapping("Category", "category", "string"),
+        new Mapping("Post Date", "date", "date"),
+        new Mapping("Description", "description", "string"),
+      ]),
+      new ImportProfile(3, "Discover Credit", [
+        new Mapping("Amount", "amount", "number"),
+        new Mapping("Category", "category", "string"),
+        new Mapping("Post Date", "date", "date"),
+        new Mapping("Description", "description", "string"),
+      ]),
+    ];
+
+    const result = importProfileRepo.all(1);
+
+    expect(result).toEqual(expected);
+  });
+  test("", () => {
+    setupDatabase(db);
+    const importProfileRepo = new SQLiteImportProfileRepository(db);
+    const expected = null;
+
+    const result = importProfileRepo.getById(100, 1);
+
+    expect(result).toEqual(expected);
+  });
+  test("", () => {
+    setupDatabase(db);
+    const importProfileRepo = new SQLiteImportProfileRepository(db);
+    const expected = new ImportProfile(1, "Chase Checkings", [
+      new Mapping("Amount", "amount", "number"),
+      new Mapping("Posting Date", "date", "date"),
+      new Mapping("Description", "description", "string"),
+    ]);
+
+    const result = importProfileRepo.getById(1, 1);
+
+    expect(result).toEqual(expected);
+  });
+});
+
+describe.only("createRouteHandler", () => {
+  test("", async () => {
+    const csv = `Details,Posting Date,Description,Amount,Type,Balance,Check or Slip #
+Store Purchase,2025-04-28,Grocery Store Inc.,-87.32,Debit,1254.68,
+Direct Deposit,2025-04-25,ACME COMPANY PAYROLL,1500.00,Credit,1342.00,
+ATM Withdrawal,2025-04-22,ATM WITHDRAWAL,-200.00,Debit,842.00,
+Check Payment,2025-04-18,Payment to Landlord,-950.00,Debit,1042.00,123456
+Bill Payment,2025-04-15,ELECTRIC COMPANY AUTO-PAY,-78.45,Debit,1992.00,`;
+    const repository = {
+      getById: (userId, profileId) => {
+        return new ImportProfile(1, "Chase Checkings", [
+          new Mapping("Amount", "amount", "number"),
+          new Mapping("Posting Date", "date", "date"),
+          new Mapping("Description", "description", "string"),
+        ]);
+      },
+    };
+    const req = {
+      user: {
+        id: 1,
+      },
+      body: {
+        ImportProfileId: 1,
+      },
+      file: {
+        buffer: Buffer.from(csv),
+      },
+    };
+    const res = {
+      send: jest.fn(),
+    };
+    const routeHandler = createRouteHandler(repository);
+    const expected = `87.32\t2025-04-28\tGrocery Store Inc.
+    1500.00\t2025-04-25\tACME COMPANY PAYROLL
+    200.00\t2025-04-22\tATM WITHDRAWAL
+    950.00\t2025-04-18\tPayment to Landlord
+    78.45\t2025-04-15\tELECTRIC COMPANY AUTO-PAY`;
+
+    await routeHandler(req, res);
+
+    expect(res.send).toHaveBeenCalledWith(expected);
+  });
+});
+
+describe("Route", () => {
+  // setup
+  test.todo("");
 });
