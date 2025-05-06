@@ -1,5 +1,5 @@
 const express = require("express");
-const { validateJwt } = require("../../middlewares/auth-middleware");
+const { validateJwt, createJwtMiddleware } = require("../../middlewares/auth-middleware");
 const { z } = require("zod");
 const multer = require("multer");
 const { Readable } = require("stream");
@@ -36,8 +36,7 @@ function validateRequest(req, res, next) {
   }
 
   const importId = req.body.importProfileId;
-  const schema = z.number().min(0);
-  const validationResult = schema.safeParse(importId);
+  const validationResult = z.coerce.number().min(0).safeParse(importId);
 
   if (!validationResult.success) {
     return res.status(400).send(`Invalid importProfileId: "${importId}"`);
@@ -119,25 +118,6 @@ function createGoogleSheetsCSV(rows) {
   return rows.map((row) => Object.values(row).join("\t")).join("\n");
 }
 
-function getMappings(userId, importProfileId) {
-  const db = getDatabase();
-  try {
-    const rows = db
-      .prepare(
-        `SELECT * FROM import_profiles ip
-       INNER JOIN target_tables tt ON tt.id = ip.target_table_id
-       INNER JOIN column_mappings cm ON cm.import_profile_id = ip.id
-       WHERE ip.id = @userId`
-      )
-      .get({
-        userId,
-        importProfileId,
-      });
-  } catch (e) {
-    console.log(e);
-  }
-}
-
 class Mapping {
   /**
    * @param {string} column
@@ -182,68 +162,72 @@ class SQLiteImportProfileRepository extends ImportProfileRepository {
   }
 
   getById(userId, importProfileId) {
-    const query = `SELECT
-        ip.id,
-        ip.name,
-        cm.column_name AS column,
-        cm.target_column_name AS target,
-        cm.data_type AS type
-      FROM ${TABLES.IMPORT_PROFILES} ip
-      INNER JOIN ${TABLES.TARGET_TABLES} tt ON tt.id = ip.target_table_id
-      INNER JOIN ${TABLES.COLUMN_MAPPINGS} cm ON cm.import_profile_id = ip.id
-      WHERE ip.user_id = @userId AND ip.id = @importProfileId`;
-    const rows = this.#db.prepare(query).all({ userId, importProfileId });
+    try {
+      const query = `SELECT
+          ip.id,
+          ip.name,
+          cm.column_name AS column,
+          cm.target_column_name AS target,
+          cm.data_type AS type
+        FROM ${TABLES.IMPORT_PROFILES} ip
+        INNER JOIN ${TABLES.TARGET_TABLES} tt ON tt.id = ip.target_table_id
+        INNER JOIN ${TABLES.COLUMN_MAPPINGS} cm ON cm.import_profile_id = ip.id
+        WHERE ip.user_id = @userId AND ip.id = @importProfileId`;
+      const rows = this.#db.prepare(query).all({ userId, importProfileId });
 
-    console.log(rows);
+      if (rows.length === 0) return null;
 
-    if (rows.length === 0) return null;
+      const { id, name } = rows[0];
+      const importProfile = new ImportProfile(id, name);
 
-    const { id, name } = rows[0];
-    const importProfile = new ImportProfile(id, name);
+      for (const { column, target, type } of rows) {
+        importProfile.mappings.push(new Mapping(column, target, type));
+      }
 
-    for (const { column, target, type } of rows) {
-      importProfile.mappings.push(new Mapping(column, target, type));
+      return importProfile;
+    } catch (error) {
+      console.log(error);
+      return null;
     }
-
-    return importProfile;
   }
 
   all(userId) {
-    const query = `SELECT
-        ip.id,
-        ip.name,
-        cm.column_name AS column,
-        cm.target_column_name AS target,
-        cm.data_type AS type
-      FROM ${TABLES.IMPORT_PROFILES} ip
-      INNER JOIN ${TABLES.TARGET_TABLES} tt ON tt.id = ip.target_table_id
-      INNER JOIN ${TABLES.COLUMN_MAPPINGS} cm ON cm.import_profile_id = ip.id
-      WHERE ip.user_id = @userId;`;
-    const rows = this.#db.prepare(query).all({ userId });
+    try {
+      const query = `SELECT
+  ip.id,
+  ip.name,
+  cm.column_name AS column,
+  cm.target_column_name AS target,
+  cm.data_type AS type
+FROM ${TABLES.IMPORT_PROFILES} ip
+INNER JOIN ${TABLES.TARGET_TABLES} tt ON tt.id = ip.target_table_id
+INNER JOIN ${TABLES.COLUMN_MAPPINGS} cm ON cm.import_profile_id = ip.id
+WHERE ip.user_id = @userId;`;
+      const rows = this.#db.prepare(query).all({ userId });
 
-    console.log(rows);
+      if (rows.length === 0) return [];
 
-    if (rows.length === 0) return [];
+      /** @type {Map<number, ImportProfile>} */
+      const map = new Map();
 
-    // we need to group the import profile ids together
+      for (const row of rows) {
+        const { id, name, column, target, type } = row;
+        const mapping = new Mapping(column, target, type);
 
-    /** @type {Map<number, ImportProfile>} */
-    const map = new Map();
-
-    for (const row of rows) {
-      const { id, name, column, target, type } = row;
-      const mapping = new Mapping(column, target, type);
-
-      if (map.has(id)) {
-        const importProfile = map.get(id);
-        importProfile.mappings.push(mapping);
-      } else {
-        const importProfile = new ImportProfile(id, name, [mapping]);
-        map.set(id, importProfile);
+        if (map.has(id)) {
+          const importProfile = map.get(id);
+          importProfile.mappings.push(mapping);
+        } else {
+          const importProfile = new ImportProfile(id, name, [mapping]);
+          map.set(id, importProfile);
+        }
       }
-    }
 
-    return Array.from(map.values());
+      return Array.from(map.values());
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
   }
 }
 
@@ -257,6 +241,8 @@ function createRouteHandler(repository) {
     const profileId = req.body.importProfileId;
     const importProfile = repository.getById(userId, profileId);
 
+    if (!importProfile) return res.sendStatus(400);
+
     const stream = Readable.from(req.file.buffer);
     const rows = await parseCSV(stream, importProfile.mappings);
     const csv = createGoogleSheetsCSV(rows);
@@ -265,14 +251,18 @@ function createRouteHandler(repository) {
   };
 }
 
-router
-  .route("/")
-  .post(
-    validateJwt,
-    upload.single("file"),
-    validateRequest,
-    createRouteHandler(new SQLiteImportProfileRepository(db))
-  );
+function createRoute(secret, repository) {
+  const route = express.Router();
+  route
+    .route("/")
+    .post(
+      createJwtMiddleware(secret),
+      upload.single("file"),
+      validateRequest,
+      createRouteHandler(repository)
+    );
+  return route;
+}
 
 module.exports = {
   createGoogleSheetsCSV,
@@ -281,6 +271,6 @@ module.exports = {
   ImportProfile,
   Mapping,
   parseCSV,
-  router,
+  createRoute,
   SQLiteImportProfileRepository,
 };

@@ -2,6 +2,9 @@ const fs = require("node:fs");
 const { resolve } = require("node:path");
 const { Readable } = require("node:stream");
 
+const jwt = require("jsonwebtoken");
+const request = require("supertest");
+const express = require("express");
 const betterSQLite = require("better-sqlite3");
 const { TABLES, initializeTables } = require("../../database/schemas");
 const {
@@ -11,7 +14,7 @@ const {
   ImportProfile,
   Mapping,
   parseCSV,
-  router,
+  createRoute,
   SQLiteImportProfileRepository,
 } = require("./purchase-import-routes");
 
@@ -261,28 +264,23 @@ describe("createGoogleSheetsCSV", () => {
   });
 });
 
-describe("SQLiteImportProfileRepository", () => {
-  const dbPath = resolve(__dirname, "./test.db");
-  /** @type {import("better-sqlite3").Database} */
-  let db = null;
-
-  /** @param {import("better-sqlite3").Database} db */
-  function setupDatabase(db) {
-    initializeTables(db);
-    db.prepare(`INSERT INTO ${TABLES.ROLES} (name) VALUES ('admin');`).run();
-    db.prepare(
-      `INSERT INTO ${TABLES.USERS} (role_id, username, password)
+/** @param {import("better-sqlite3").Database} db */
+function setupDatabase(db) {
+  initializeTables(db);
+  db.prepare(`INSERT INTO ${TABLES.ROLES} (name) VALUES ('admin');`).run();
+  db.prepare(
+    `INSERT INTO ${TABLES.USERS} (role_id, username, password)
         VALUES (1, 'username', '123abc');`
-    ).run();
-    db.prepare(`INSERT INTO ${TABLES.TARGET_TABLES} (name) VALUES ('purchases');`).run();
-    db.prepare(
-      `INSERT INTO ${TABLES.IMPORT_PROFILES} (user_id, target_table_id, name) VALUES
+  ).run();
+  db.prepare(`INSERT INTO ${TABLES.TARGET_TABLES} (name) VALUES ('purchases');`).run();
+  db.prepare(
+    `INSERT INTO ${TABLES.IMPORT_PROFILES} (user_id, target_table_id, name) VALUES
     (1, 1, 'Chase Checkings'),
     (1, 1, 'Chase Credit'),
     (1, 1, 'Discover Credit');`
-    ).run();
-    db.prepare(
-      `INSERT INTO ${TABLES.COLUMN_MAPPINGS}
+  ).run();
+  db.prepare(
+    `INSERT INTO ${TABLES.COLUMN_MAPPINGS}
     (
       import_profile_id,
       column_name,
@@ -301,8 +299,13 @@ describe("SQLiteImportProfileRepository", () => {
     (3, 'Post Date', 'date', 'date'),
     (3, 'Description', 'description', 'string')
     ;`
-    ).run();
-  }
+  ).run();
+}
+
+describe("SQLiteImportProfileRepository", () => {
+  const dbPath = resolve(__dirname, "./test.db");
+  /** @type {import("better-sqlite3").Database} */
+  let db = null;
 
   beforeEach(() => {
     db = betterSQLite(dbPath);
@@ -374,7 +377,7 @@ describe("SQLiteImportProfileRepository", () => {
   });
 });
 
-describe.only("createRouteHandler", () => {
+describe("createRouteHandler", () => {
   test("", async () => {
     const csv = `Details,Posting Date,Description,Amount,Type,Balance,Check or Slip #
 Store Purchase,2025-04-28,Grocery Store Inc.,-87.32,Debit,1254.68,
@@ -418,7 +421,33 @@ Bill Payment,2025-04-15,ELECTRIC COMPANY AUTO-PAY,-78.45,Debit,1992.00,`;
   });
 });
 
-describe("Route", () => {
-  // setup
-  test.todo("");
+describe.only("Route", () => {
+  test("", async () => {
+    const file = resolve(__dirname, "./__fixtures__/chase-checkings.csv");
+    const dbPath = resolve(__dirname, "./test.db");
+    let db = betterSQLite(dbPath);
+    const secret = "secret";
+    const repository = new SQLiteImportProfileRepository(db);
+    const router = createRoute(secret, repository);
+    const user = { id: 1 };
+    const token = jwt.sign(user, secret);
+    const app = express();
+    setupDatabase(db);
+    app.use(express.json());
+    app.use(router);
+
+    const result = await request(app)
+      .post("/")
+      .set("authorization", `BEARER ${token}`)
+      .attach("file", file)
+      .field("importProfileId", 1);
+
+    console.log(result.text);
+
+    expect(result.status).toBe(200);
+
+    db.close();
+    db = null;
+    fs.rmSync(dbPath);
+  });
 });
