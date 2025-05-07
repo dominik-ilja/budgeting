@@ -17,13 +17,6 @@ const router = express.Router();
 // 3. try to create the new mapping in the database - whole thing should fail if one entry fails
 // 4. Returns the created mapping to the database
 
-// With this route, you can upload a CSV file and the ID to the import profile you'd like to use. The CSV file is updated then returned
-// 1. verify the JWT
-// 2. verify the request is valid
-// 3. ~~check the CSV file for viruses~~
-// 4. parse the CSV
-// 5. return the result to the user
-
 /**
  * @description Validates if a request has the required attributes for processing a CSV file.
  * @param {import("express").Request} req
