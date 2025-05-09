@@ -2,11 +2,6 @@ const jwt = require("jsonwebtoken");
 const { env } = require("../config/env");
 
 function createJwtMiddleware(secret) {
-  /**
-   * @param {import('express').Request} req
-   * @param {import('express').Response} res
-   * @param {import('express').NextFunction} next
-   */
   return (req, res, next) => {
     const auth = req.headers.authorization;
 
