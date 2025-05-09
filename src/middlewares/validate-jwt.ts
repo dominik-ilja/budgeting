@@ -1,6 +1,12 @@
 import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
+export interface AuthenticatedRequest extends Request {
+  user: {
+    id: number;
+  };
+}
+
 export function createValidateJwt(secret: string) {
   return (req: Request, res: Response, next: NextFunction): void => {
     const auth = req.headers.authorization;

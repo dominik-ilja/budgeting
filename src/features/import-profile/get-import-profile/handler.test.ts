@@ -6,6 +6,11 @@ import type { Database } from "better-sqlite3";
 import { initializeTables, TABLES } from "../../../database/schemas";
 import { ImportProfile } from "../../../entities/import-profile";
 import { Mapping } from "../../../entities/mapping";
+import { getDirname } from "../../../utils";
+import path from "node:path";
+// import fs from "node:fs";
+
+const __dirname = getDirname(import.meta.url);
 
 function setupDatabase(db: Database) {
   initializeTables(db);
@@ -61,16 +66,21 @@ function createResponse() {
 }
 
 describe("get-import-profile-handler", () => {
-  let database: Database;
+  const databasePath = path.resolve(__dirname, "database.db");
+  let database: Database | null = null;
   let repository: SQLiteImportProfileRepository;
 
   beforeEach(() => {
-    database = betterSqlite3(":memory:");
+    database = betterSqlite3(databasePath);
     repository = new SQLiteImportProfileRepository(database);
     setupDatabase(database);
   });
   afterEach(() => {
-    database.close();
+    if (database) {
+      database.close();
+    }
+    database = null;
+    // fs.rmSync(databasePath);
   });
 
   test.each([
