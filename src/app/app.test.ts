@@ -1,49 +1,73 @@
-import { createApp } from "./app";
+import { createApp, type Config } from "./app";
 import request from "supertest";
+import jwt from "jsonwebtoken";
+import { createDatabase, seedInitialData } from "../database";
+import { TABLES } from "../database/schemas";
 
-test.only("route: /", async () => {
-  const app = createApp();
+let config: Config;
+
+beforeEach(() => {
+  const database = createDatabase(":memory:");
+  seedInitialData(database, { adminPassword: "password", adminUsername: "username" });
+
+  database
+    .prepare(
+      `INSERT INTO ${TABLES.IMPORT_PROFILES} (user_id, target_table_id, name) VALUES
+      (1, 1, 'Chase Checkings');`
+    )
+    .run();
+  database
+    .prepare(
+      `INSERT INTO ${TABLES.COLUMN_MAPPINGS}
+    (
+      import_profile_id,
+      column_name,
+      target_column_name,
+      data_type
+    ) VALUES
+    (1, 'Amount', 'amount', 'number'),
+    (1, 'Posting Date', 'date', 'date'),
+    (1, 'Description', 'description', 'string');`
+    )
+    .run();
+
+  config = {
+    database,
+    jwtSecret: "secret",
+  };
+});
+afterEach(() => {
+  config.database.close();
+});
+
+test("route: /", async () => {
+  const app = createApp(config);
 
   const response = await request(app).get("/");
 
   expect(response.text).toBe("Hello, world!");
 });
+test("route: /import-profile/:id", async () => {
+  const app = createApp(config);
+  const payload = { user: { id: 1 } };
+  const token = jwt.sign(payload, config.jwtSecret, { expiresIn: "1h" });
+  const expected = {
+    id: 1,
+    name: "Chase Checkings",
+    mappings: [
+      { column: "Amount", target: "amount", type: "number" },
+      { column: "Posting Date", target: "date", type: "date" },
+      { column: "Description", target: "description", type: "string" },
+    ],
+  };
 
-// describe("route: /register", () => {
-//   const req = request(app);
+  const response = await request(app)
+    .get("/import-profile/1")
+    .set("authorization", `Bearer ${token}`);
 
-//   it("should return a 400 status when either username or password is missing", async () => {
-//     const response = await req.post("/register");
-//     expect(response.status).toBe(400);
-//   });
-//   it("should return a 409 status code when username is already taken", async () => {
-//     const response = await req
-//       .post("/register")
-//       .set("content-type", MIME_TYPES.JSON)
-//       .send({ username: "username", password: "password" });
-//     expect(response.status).toBe(409);
-//   });
-//   it("should return a 200 status when username doesn't exist", async () => {
-//     const response = await req
-//       .post("/register")
-//       .send({ username: "username1", password: "password" });
-//     expect(response.status).toBe(200);
-//   });
-// });
+  console.log(response.headers);
+  console.log(response.status);
 
-// describe("route: /login", () => {
-//   const req = request(app);
-
-//   it("should return a 200 status when username and password match entry in database", async () => {
-//     const credentials = { username: "username1", password: "password" };
-
-//     await req.post("/register").set("content-type", MIME_TYPES.JSON).send(credentials);
-
-//     const response = await req
-//       .post("/login")
-//       .set("content-type", MIME_TYPES.JSON)
-//       .send(credentials);
-
-//     expect(response.status).toBe(200);
-//   });
-// });
+  expect(response.status).toBe(200);
+  expect(response.body).toEqual(expected);
+});

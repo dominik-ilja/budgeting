@@ -1,24 +1,26 @@
 import express from "express";
 import { createGetImportProfileHandler } from "../features/import-profile/get-import-profile/handler";
-import betterSqlite3 from "better-sqlite3";
 import { SQLiteImportProfileRepository } from "../repositories/import-profile/sqlite-repository";
 import { createValidateJwt } from "../middlewares/validate-jwt";
-import { env } from "../config/env";
+import type { Database } from "better-sqlite3";
 
-export function createApp() {
-  const database = betterSqlite3(":memory:");
-  const importProfileRepo = new SQLiteImportProfileRepository(database);
+export type Config = {
+  database: Database;
+  jwtSecret: string;
+};
+
+export function createApp(config: Config) {
+  const importProfileRepo = new SQLiteImportProfileRepository(config.database);
+  const validateJwt = createValidateJwt(config.jwtSecret);
+  const getImportProfileHandler = createGetImportProfileHandler(importProfileRepo);
+
   const app = express();
   app.use(express.json());
 
   app.get("/", (_, res) => {
     res.send("Hello, world!");
   });
-  app.get(
-    "/import-profile/:id",
-    createValidateJwt(env.JWT_SECRET),
-    createGetImportProfileHandler(importProfileRepo)
-  );
+  app.get("/import-profile/:id", validateJwt, getImportProfileHandler);
 
   return app;
 }

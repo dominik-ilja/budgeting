@@ -84,7 +84,7 @@ export class SQLiteImportProfileRepository implements ImportProfileRepository {
 
       return importProfile;
     } catch (error) {
-      console.log(error);
+      console.log((error as any)?.message);
       return null;
     }
   }

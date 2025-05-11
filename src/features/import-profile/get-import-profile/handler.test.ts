@@ -1,19 +1,22 @@
+import { jest } from "@jest/globals";
 import { createGetImportProfileHandler } from "./handler";
 import { SQLiteImportProfileRepository } from "../../../repositories/import-profile/sqlite-repository";
 import betterSqlite3 from "better-sqlite3";
-import type { Request, Response } from "express";
+import type { Response } from "express";
 import type { Database } from "better-sqlite3";
-import { initializeTables, TABLES } from "../../../database/schemas";
+import { SCHEMAS, TABLES } from "../../../database/schemas";
+import { createTables } from "../../../database";
 import { ImportProfile } from "../../../entities/import-profile";
 import { Mapping } from "../../../entities/mapping";
 import { getDirname } from "../../../utils";
 import path from "node:path";
-// import fs from "node:fs";
+import { createMockRequest, createMockResponse } from "../../../test/express";
+import fs from "node:fs";
 
 const __dirname = getDirname(import.meta.url);
 
 function setupDatabase(db: Database) {
-  initializeTables(db);
+  createTables(db, SCHEMAS);
   db.prepare(`INSERT INTO ${TABLES.ROLES} (name) VALUES ('admin');`).run();
   db.prepare(
     `INSERT INTO ${TABLES.USERS} (role_id, username, password)
@@ -48,39 +51,25 @@ function setupDatabase(db: Database) {
     ;`
   ).run();
 }
-function createRequest(userId: number, paramId: string) {
-  return {
-    user: {
-      id: userId,
-    },
-    params: {
-      id: paramId,
-    },
-  } as unknown as Request;
-}
-function createResponse() {
-  return {
-    sendStatus: jest.fn().mockReturnThis(),
-    json: jest.fn().mockReturnThis(),
-  } as unknown as Response;
-}
 
 describe("get-import-profile-handler", () => {
   const databasePath = path.resolve(__dirname, "database.db");
-  let database: Database | null = null;
+  let database: Database;
   let repository: SQLiteImportProfileRepository;
+  let res: Response;
 
   beforeEach(() => {
     database = betterSqlite3(databasePath);
     repository = new SQLiteImportProfileRepository(database);
+    res = createMockResponse({
+      sendStatus: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
+    });
     setupDatabase(database);
   });
   afterEach(() => {
-    if (database) {
-      database.close();
-    }
-    database = null;
-    // fs.rmSync(databasePath);
+    database.close();
+    fs.rmSync(databasePath);
   });
 
   test.each([
@@ -117,8 +106,10 @@ describe("get-import-profile-handler", () => {
     "Returns the correct import profile - userId: %s, importProfileId: %s",
     (userId, importProfileId, expected) => {
       const handler = createGetImportProfileHandler(repository);
-      const req = createRequest(userId, importProfileId);
-      const res = createResponse();
+      const req = createMockRequest({
+        user: { id: userId },
+        params: { id: importProfileId },
+      });
 
       handler(req, res);
 
@@ -133,8 +124,10 @@ describe("get-import-profile-handler", () => {
     "Returns a 404 when the importProfile doesn't exist - userId: %s, importProfileId: %s",
     (userId, importProfileId) => {
       const handler = createGetImportProfileHandler(repository);
-      const req = createRequest(userId, importProfileId);
-      const res = createResponse();
+      const req = createMockRequest({
+        user: { id: userId },
+        params: { id: importProfileId },
+      });
 
       handler(req, res);
 

@@ -1,7 +1,20 @@
-import { createApp } from "./app/app.js";
+import { createApp } from "./app/app";
+import { initDatabase } from "./database";
+import { env } from "./config/env";
 
-const app = createApp();
-const port = 3000;
-app.listen(port, () => {
-  console.log(`Server is running on port: ${port}`);
+const database = initDatabase({
+  filename: env.DB_PATH,
+  seed: {
+    adminPassword: env.ADMIN_PASSWORD,
+    adminUsername: env.ADMIN_USERNAME,
+  },
+});
+
+const app = createApp({
+  database,
+  jwtSecret: env.JWT_SECRET,
+});
+
+app.listen(env.PORT, () => {
+  console.log(`Server is running on port: ${env.PORT}`);
 });

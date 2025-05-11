@@ -1,4 +1,4 @@
-const TABLES = Object.freeze({
+export const TABLES = Object.freeze({
   COLUMN_MAPPINGS: "column_mappings",
   IMPORT_PROFILES: "import_profiles",
   // PURCHASES: "purchases",
@@ -42,25 +42,10 @@ const CREATE_COLUMN_MAPPINGS_TABLE = `CREATE TABLE IF NOT EXISTS ${TABLES.COLUMN
   UNIQUE (import_profile_id, target_column_name)
 );`;
 
-const SCHEMAS = Object.freeze({
+export const SCHEMAS = Object.freeze({
   CREATE_COLUMN_MAPPINGS_TABLE,
   CREATE_IMPORT_PROFILE_TABLE,
   CREATE_ROLES_TABLE,
   CREATE_TARGET_TABLE,
   CREATE_USERS_TABLE,
 });
-
-/**
- * @param {import("better-sqlite3").Database} database
- */
-function initializeTables(database) {
-  for (const schema of Object.values(SCHEMAS)) {
-    database.prepare(schema).run();
-  }
-}
-
-module.exports = {
-  SCHEMAS,
-  TABLES,
-  initializeTables,
-};
