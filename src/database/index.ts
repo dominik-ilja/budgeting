@@ -3,6 +3,8 @@ import type { Database } from "better-sqlite3";
 import { SCHEMAS, TABLES } from "./schemas";
 import bcrypt from "bcrypt";
 
+export const MEMORY = ":memory:";
+
 export function createDatabase(filename: string) {
   return betterSqlite3(filename);
 }
@@ -71,9 +73,9 @@ export function seedInitialData(
       .run();
   }
 
-  if (process.env.APP_ENV === "test") {
-    console.log(database.prepare(`SELECT * FROM ${TABLES.USERS};`).all());
-  }
+  // if (process.env.APP_ENV === "test") {
+  //   console.log(database.prepare(`SELECT * FROM ${TABLES.USERS};`).all());
+  // }
 
   return database;
 }

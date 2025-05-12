@@ -10,7 +10,7 @@ import { ImportProfile } from "../../../entities/import-profile";
 import { Mapping } from "../../../entities/mapping";
 import { getDirname } from "../../../utils";
 import path from "node:path";
-import { createMockRequest, createMockResponse } from "../../../test/express";
+import { createMockRequest, createMockResponse } from "../../../testing/express";
 import fs from "node:fs";
 
 const __dirname = getDirname(import.meta.url);

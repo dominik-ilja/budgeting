@@ -1,6 +1,7 @@
 import { ImportProfile } from "../../entities/import-profile";
 import { Mapping } from "../../entities/mapping";
 import { ImportProfileRepository, CreateResult } from "./repository";
+import { TargetTable } from "../../entities/target-table";
 import { TABLES } from "../../database/schemas";
 import { type Database } from "better-sqlite3";
 
@@ -65,7 +66,6 @@ export class SQLiteImportProfileRepository implements ImportProfileRepository {
           cm.target_column_name AS target,
           cm.data_type AS type
         FROM ${TABLES.IMPORT_PROFILES} ip
-        INNER JOIN ${TABLES.TARGET_TABLES} tt ON tt.id = ip.target_table_id
         INNER JOIN ${TABLES.COLUMN_MAPPINGS} cm ON cm.import_profile_id = ip.id
         WHERE ip.user_id = @userId AND ip.id = @importProfileId`;
       const rows = this.#db
@@ -85,6 +85,21 @@ export class SQLiteImportProfileRepository implements ImportProfileRepository {
       return importProfile;
     } catch (error) {
       console.log((error as any)?.message);
+      return null;
+    }
+  }
+  getTargetTableById(id: number) {
+    try {
+      const query = `SELECT * FROM ${TABLES.TARGET_TABLES} WHERE id = @id`;
+
+      type Result = { id: number; name: string } | undefined;
+      const result = this.#db.prepare(query).get({ id }) as Result;
+
+      if (!result) return null;
+
+      return new TargetTable(result.id, result.name);
+    } catch (error) {
+      console.log(error);
       return null;
     }
   }

@@ -11,8 +11,10 @@ const config: Config = {
       },
     ],
   },
+  setupFiles: ["./src/testing/jest-setup.ts"],
   clearMocks: true,
   preset: "ts-jest",
+  testPathIgnorePatterns: ["/node_modules/", "/dist/", "/.temp/"],
 } satisfies Config;
 
 export default config;

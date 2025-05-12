@@ -6,6 +6,11 @@ export type CreateResult =
 
 export interface ImportProfileRepository {
   all(userId: number): ImportProfile[];
-  create(userId: number, targetTableId: number, name: string): CreateResult;
+  create(
+    userId: number,
+    targetTableId: number,
+    name: string,
+    mappings: any[]
+  ): CreateResult;
   getById(userId: number, importProfileId: number): ImportProfile | null;
 }
