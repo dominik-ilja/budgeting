@@ -85,5 +85,21 @@ describe("SQLite Import Profile Repository", () => {
     expect(result).toEqual(expected);
   });
 
-  test.todo("Creates a new import profile");
+  test("Creates a new import profile", () => {
+    const mappings = [
+      new Mapping("column1", "target1", "string"),
+      new Mapping("column2", "target2", "string"),
+      new Mapping("column3", "target3", "string"),
+    ];
+    const expected = {
+      isSuccessful: true,
+      id: 4,
+    };
+
+    const actual = repository.create(1, 1, "New Import Profile", mappings);
+    const profile = repository.getById(1, 4);
+
+    expect(actual).toEqual(expected);
+    expect(profile).toEqual(new ImportProfile(4, "New Import Profile", mappings));
+  });
 });

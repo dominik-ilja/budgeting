@@ -1,4 +1,5 @@
 import { ImportProfile } from "../../entities/import-profile";
+import type { Mapping } from "../../entities/mapping";
 
 export type CreateResult =
   | { isSuccessful: true; id: number | bigint }
@@ -10,7 +11,7 @@ export interface ImportProfileRepository {
     userId: number,
     targetTableId: number,
     name: string,
-    mappings: any[]
+    mappings: Mapping[]
   ): CreateResult;
   getById(userId: number, importProfileId: number): ImportProfile | null;
 }

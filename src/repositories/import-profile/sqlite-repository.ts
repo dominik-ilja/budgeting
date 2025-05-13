@@ -103,22 +103,47 @@ export class SQLiteImportProfileRepository implements ImportProfileRepository {
       return null;
     }
   }
-  create(userId: number, targetTableId: number, name: string): CreateResult {
+  create(
+    userId: number,
+    targetTableId: number,
+    name: string,
+    mappings: Mapping[]
+  ): CreateResult {
     try {
-      const query = `INSERT INTO ${TABLES.IMPORT_PROFILES} (
-        user_id,
-        target_table_id,
-        name
-      ) VALUES (@userId, @targetTableId, @name);`;
+      this.#db.prepare("BEGIN").run();
+
       const { lastInsertRowid } = this.#db
-        .prepare(query)
+        .prepare(
+          `INSERT INTO ${TABLES.IMPORT_PROFILES} (
+          user_id,
+          target_table_id,
+          name
+        ) VALUES (@userId, @targetTableId, @name);`
+        )
         .run({ userId, targetTableId, name });
+
+      const insertMappings = this.#db.prepare(`INSERT INTO ${TABLES.COLUMN_MAPPINGS} (
+          import_profile_id,
+          column_name,
+          target_column_name,
+          data_type
+        ) VALUES (@importProfileId, @column, @target, @type);`);
+
+      for (const mapping of mappings) {
+        insertMappings.run({ importProfileId: lastInsertRowid, ...mapping });
+      }
+
+      this.#db.prepare("COMMIT").run();
 
       return {
         isSuccessful: true,
         id: lastInsertRowid,
       };
     } catch (error) {
+      console.log(error);
+
+      this.#db.prepare("ROLLBACK").run();
+
       return {
         isSuccessful: false,
         error: error as Error,
