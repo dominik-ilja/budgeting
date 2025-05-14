@@ -1,7 +1,6 @@
 import type { Request, Response } from "express";
 import type { ImportProfileRepository } from "../../../repositories/import-profile/repository";
 import type { AuthenticatedRequest } from "../../../middlewares/validate-jwt";
-import type { TargetTableRepository } from "../../../repositories/target-table/repository";
 import { purchaseProfileSchema } from "./schemas/purchase-profile-schema";
 
 // This is the final step in creating an import profile for a specific user
@@ -9,14 +8,13 @@ import { purchaseProfileSchema } from "./schemas/purchase-profile-schema";
 // when we finish
 
 export function createPostImportProfileHandler(
-  importProfileRepo: ImportProfileRepository,
-  targetTableRepo: TargetTableRepository
+  importProfileRepo: ImportProfileRepository
 ) {
   return (req: Request, res: Response) => {
     const _req = req as AuthenticatedRequest;
 
     const targetTableId = parseInt(req.body.targetTableId);
-    const table = targetTableRepo.getById(targetTableId);
+    const table = importProfileRepo.getTargetTableById(targetTableId);
 
     if (!table) {
       res.sendStatus(400);
@@ -30,7 +28,7 @@ export function createPostImportProfileHandler(
       throw new Error("Unsupported table name");
     }
 
-    const result = schema.safeParse({
+    const validation = schema.safeParse({
       userId: _req.user.id,
       importProfileId: parseInt(_req.params.id),
       targetTableId,
@@ -38,19 +36,25 @@ export function createPostImportProfileHandler(
       mappings: _req.body.mappings,
     });
 
-    if (!result.success) {
-      res.sendStatus(400);
+    if (!validation.success) {
+      res.sendStatus(400); // add the validation error messages
       return;
     }
 
-    const data = result.data;
+    const data = validation.data;
+    const result = importProfileRepo.create(
+      data.userId,
+      targetTableId,
+      data.name,
+      data.mappings
+    );
 
-    // wrap in a transaction
-    // create the import profile
-    // create the mappings for the import profile
-    // finish transaction
-    importProfileRepo.create(data.userId, targetTableId, data.name, data.mappings);
+    if (!result.isSuccessful) {
+      console.log(result.error);
+      res.sendStatus(500);
+      return;
+    }
 
-    // return the import profile in JSON response
+    res.sendStatus(201).json({ id: result.id });
   };
 }
