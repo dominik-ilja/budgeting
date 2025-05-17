@@ -8,7 +8,6 @@ describe("Purchase Profile Schema", () => {
     [
       {
         userId: 1,
-        importProfileId: 1,
         targetTableId: 1,
         name: "Chase Checkings",
         mappings: [
@@ -28,7 +27,6 @@ describe("Purchase Profile Schema", () => {
     [
       {
         userId: 1,
-        importProfileId: 1,
         targetTableId: 1,
         name: "Chase Checkings",
         mappings: [
@@ -42,7 +40,6 @@ describe("Purchase Profile Schema", () => {
     [
       {
         userId: 1,
-        importProfileId: 1,
         targetTableId: 1,
         name: "Chase Checkings",
         mappings: [

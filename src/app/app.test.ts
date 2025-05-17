@@ -47,6 +47,7 @@ test("route: /", async () => {
 
   expect(response.text).toBe("Hello, world!");
 });
+
 test("route: /import-profile/:id", async () => {
   const app = createApp(config);
   const payload = { user: { id: 1 } };
@@ -69,5 +70,28 @@ test("route: /import-profile/:id", async () => {
   console.log(response.status);
 
   expect(response.status).toBe(200);
+  expect(response.body).toEqual(expected);
+});
+
+test("route: /import-profile (post)", async () => {
+  const app = createApp(config);
+  const payload = { user: { id: 1 } };
+  const token = jwt.sign(payload, config.jwtSecret, { expiresIn: "1h" });
+  const expected = { id: 2 };
+
+  const response = await request(app)
+    .post("/import-profile")
+    .set("authorization", `Bearer ${token}`)
+    .send({
+      targetTableId: 1,
+      name: "Chase Checkings",
+      mappings: [
+        { column: "Amount", target: "amount", type: "number" },
+        { column: "Posting Date", target: "date", type: "date" },
+        { column: "Description", target: "description", type: "string" },
+      ],
+    });
+
+  expect(response.status).toBe(201);
   expect(response.body).toEqual(expected);
 });

@@ -28,7 +28,6 @@ const purchaseMappingSchema = z
 
 export const purchaseProfileSchema = z.object({
   userId: z.number(),
-  importProfileId: z.number(),
   targetTableId: z.number(),
   name: z.string().nonempty(),
   mappings: z

@@ -1,0 +1,11 @@
+Details,Posting Date,Description,Amount,Type,Balance,Check or Slip #
+Deposit,2025-03-20,Paycheck,1500.00,Credit,3000.00,
+Withdrawal,2025-03-21,Grocery Store,-75.50,Debit,2924.50,
+Withdrawal,2025-03-22,Gas Station,-40.00,Debit,2884.50,
+Deposit,2025-03-23,Freelance Payment,500.00,Credit,3384.50,
+Withdrawal,2025-03-24,Online Subscription,-12.99,Debit,3371.51,
+Deposit,2025-03-25,Gift,200.00,Credit,3571.51,
+Withdrawal,2025-03-26,Dining Out,-55.00,Debit,3516.51,
+Withdrawal,2025-03-27,Electric Bill,-100.00,Debit,3416.51,
+Deposit,2025-03-28,Tax Refund,800.00,Credit,4216.51,
+Withdrawal,2025-03-29,Car Maintenance,-250.00,Debit,3966.51,

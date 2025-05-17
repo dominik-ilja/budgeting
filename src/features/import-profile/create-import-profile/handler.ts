@@ -3,17 +3,13 @@ import type { ImportProfileRepository } from "../../../repositories/import-profi
 import type { AuthenticatedRequest } from "../../../middlewares/validate-jwt";
 import { purchaseProfileSchema } from "./schemas/purchase-profile-schema";
 
-// This is the final step in creating an import profile for a specific user
-// we need the "id" of the user, the "id" of the target table, and the "name" of the profile
-// when we finish
-
 export function createPostImportProfileHandler(
   importProfileRepo: ImportProfileRepository
 ) {
   return (req: Request, res: Response) => {
     const _req = req as AuthenticatedRequest;
 
-    const targetTableId = parseInt(req.body.targetTableId);
+    const targetTableId = parseInt(_req.body?.targetTableId);
     const table = importProfileRepo.getTargetTableById(targetTableId);
 
     if (!table) {
@@ -30,7 +26,6 @@ export function createPostImportProfileHandler(
 
     const validation = schema.safeParse({
       userId: _req.user.id,
-      importProfileId: parseInt(_req.params.id),
       targetTableId,
       name: _req.body.name,
       mappings: _req.body.mappings,
@@ -55,6 +50,6 @@ export function createPostImportProfileHandler(
       return;
     }
 
-    res.sendStatus(201).json({ id: result.id });
+    res.status(201).json({ id: result.id });
   };
 }

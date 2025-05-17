@@ -51,7 +51,7 @@ describe("post-import-profile-handler", () => {
 
     handler(req, res);
 
-    expect(res.sendStatus).toHaveBeenCalledWith(201);
+    expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith(expected);
   });
 });
