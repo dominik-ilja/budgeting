@@ -79,4 +79,38 @@ describe("formatRowsAsTsv", () => {
 
     expect(actual).toBe(expected);
   });
+  describe("Sorts the columns by the ordering", () => {
+    test.each([
+      {
+        test: "All keys are in row",
+        rows: [
+          {
+            amount: "-4.75",
+            category: "Food & Dining",
+            date: "2025-03-20",
+            description: "Coffee Shop",
+          },
+        ],
+        order: { date: 1, amount: 2, description: 3, category: 4 },
+        expected: `2025-03-20\t-4.75\tCoffee Shop\tFood & Dining`,
+      },
+      {
+        test: "All keys are not in row",
+        rows: [
+          {
+            amount: "-4.75",
+            category: "Food & Dining",
+            date: "2025-03-20",
+            description: "Coffee Shop",
+          },
+        ],
+        order: { description: 3, category: 4 },
+        expected: `Coffee Shop\tFood & Dining\t-4.75\t2025-03-20`,
+      },
+    ])("$test", ({ expected, order, rows }) => {
+      const actual = formatRowsAsTsv(rows, order);
+
+      expect(actual).toBe(expected);
+    });
+  });
 });
