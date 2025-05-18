@@ -1,0 +1,11 @@
+Transaction Date,Post Date,Description,Category,Type,Amount,Memo
+2025-03-20,2025-03-21,Coffee Shop,Food & Dining,Debit,4.75,Latte
+2025-03-19,2025-03-19,Grocery Store,Groceries,Debit,52.30,Weekly groceries
+2025-03-18,2025-03-18,Salary Deposit,Income,Credit,2500.00,March salary
+2025-03-17,2025-03-18,Electric Bill,Utilities,Debit,120.50,March billing
+2025-03-16,2025-03-17,Gas Station,Transport,Debit,45.00,Full tank
+2025-03-15,2025-03-15,Online Subscription,Entertainment,Debit,12.99,Streaming service
+2025-03-14,2025-03-14,Retail Store,Shopping,Debit,89.99,New shoes
+2025-03-13,2025-03-14,Dining Out,Food & Dining,Debit,27.40,Dinner with friends
+2025-03-12,2025-03-12,Investment Deposit,Investments,Credit,500.00,Monthly contribution
+2025-03-11,2025-03-11,Car Insurance,Insurance,Debit,75.00,Quarterly payment

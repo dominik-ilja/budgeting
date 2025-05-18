@@ -3,6 +3,10 @@ import request from "supertest";
 import jwt from "jsonwebtoken";
 import { createDatabase, seedInitialData } from "../database";
 import { TABLES } from "../database/schemas";
+import { getDirname } from "../utils";
+import { resolve } from "node:path";
+
+const __dirname = getDirname(import.meta.url);
 
 let config: Config;
 
@@ -94,4 +98,29 @@ test("route: /import-profile (post)", async () => {
 
   expect(response.status).toBe(201);
   expect(response.body).toEqual(expected);
+});
+
+test.only("route: /google-sheets", async () => {
+  const app = createApp(config);
+  const payload = { user: { id: 1 } };
+  const token = jwt.sign(payload, config.jwtSecret, { expiresIn: "1h" });
+  const expected = `2025-03-20\tPaycheck\t1500.00
+2025-03-21\tGrocery Store\t75.50
+2025-03-22\tGas Station\t40.00
+2025-03-23\tFreelance Payment\t500.00
+2025-03-24\tOnline Subscription\t12.99
+2025-03-25\tGift\t200.00
+2025-03-26\tDining Out\t55.00
+2025-03-27\tElectric Bill\t100.00
+2025-03-28\tTax Refund\t800.00
+2025-03-29\tCar Maintenance\t250.00`;
+
+  const response = await request(app)
+    .post("/google-sheets")
+    .set("authorization", `Bearer ${token}`)
+    .field("importProfileId", 1)
+    .attach("file", resolve(__dirname, "../testing/__fixtures__/chase-checkings.csv"));
+
+  expect(response.status).toBe(200);
+  expect(response.text).toEqual(expected);
 });
