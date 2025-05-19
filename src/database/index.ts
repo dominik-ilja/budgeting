@@ -64,7 +64,7 @@ export function seedInitialData(
       )
       .run({
         username: opts.adminUsername,
-        password: bcrypt.hashSync(opts.adminUsername, 10),
+        password: bcrypt.hashSync(opts.adminPassword, 10),
       });
   }
   if (!doesPurchaseTableExist) {

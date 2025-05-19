@@ -43,9 +43,6 @@ describe("post-import-profile-handler", () => {
           { column: "Description", target: "description", type: "string" },
         ],
       },
-      params: {
-        id: "1",
-      },
     });
     const expected = { id: 1 };
 

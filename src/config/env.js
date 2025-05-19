@@ -1,8 +1,11 @@
-const { resolve } = require("node:path");
-const dotenv = require("dotenv");
-const z = require("zod");
+import { resolve } from "node:path";
+import dotenv from "dotenv";
+import z from "zod";
+import { getDirname } from "../utils";
 
 const APP_ENV = process.env.APP_ENV;
+const __dirname = getDirname(import.meta.url);
+
 let envName = ".env";
 let configPath = resolve(__dirname, `../../${envName}`);
 
@@ -23,8 +26,7 @@ const schema = z.object({
   JWT_SECRET: z.string().min(20),
   PORT: z.preprocess((val) => parseInt(val, 10), z.number()),
 });
-const env = process.env;
-const parsedEnv = schema.safeParse(env);
+const parsedEnv = schema.safeParse(process.env);
 
 if (!parsedEnv.success) {
   const errors = parsedEnv.error.flatten().fieldErrors;
@@ -39,4 +41,4 @@ The following variables are missing or invalid:\n`;
   throw new Error(errorMessage);
 }
 
-module.exports = { env: parsedEnv.data };
+export const env = parsedEnv.data;
