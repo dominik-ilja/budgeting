@@ -73,10 +73,6 @@ export function seedInitialData(
       .run();
   }
 
-  // if (process.env.APP_ENV === "test") {
-  //   console.log(database.prepare(`SELECT * FROM ${TABLES.USERS};`).all());
-  // }
-
   return database;
 }
 

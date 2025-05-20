@@ -1,5 +1,7 @@
 import { createMockRequest, createMockResponse } from "../../testing/express";
-import { handler } from "./handler";
+import { createHandler } from "./handler";
+import { initDatabase, MEMORY } from "../../database";
+import jwt from "jsonwebtoken";
 
 describe("Sign In Handler", () => {
   test("", () => {
@@ -11,10 +13,25 @@ describe("Sign In Handler", () => {
         authorization: `Basic ${credentials}`,
       },
     });
-    const res = createMockResponse({});
-
-    console.log(credentials);
+    const res = createMockResponse({
+      send: jest.fn().mockReturnThis(),
+      sendStatus: jest.fn().mockReturnThis(),
+    });
+    const database = initDatabase({
+      filename: MEMORY,
+      seed: {
+        adminPassword: password,
+        adminUsername: username,
+      },
+    });
+    const secret = "secret";
+    const handler = createHandler(database, secret);
 
     handler(req, res);
+
+    const token = (res.send as jest.Mock).mock.calls[0][0].token;
+    const data = jwt.decode(token) as jwt.JwtPayload;
+    expect(res.send).toHaveBeenCalled();
+    expect(data.user).toEqual({ id: 1 });
   });
 });

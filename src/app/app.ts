@@ -7,6 +7,7 @@ import { createPostImportProfileHandler } from "../features/import-profile/creat
 import { validateRequest } from "../features/google-sheets/validate-request";
 import { createCsvToGoogleSheetsHandler } from "../features/google-sheets/handler";
 import multer from "multer";
+import { createHandler } from "../features/sign-in/handler";
 
 export type Config = {
   database: Database;
@@ -19,6 +20,7 @@ export function createApp(config: Config) {
   const getImportProfileHandler = createGetImportProfileHandler(importProfileRepo);
   const postImportProfileHandler = createPostImportProfileHandler(importProfileRepo);
   const googleSheetsHandler = createCsvToGoogleSheetsHandler(importProfileRepo);
+  const signInHandler = createHandler(config.database, config.jwtSecret);
   const upload = multer({ storage: multer.memoryStorage() });
 
   const app = express();
@@ -36,6 +38,7 @@ export function createApp(config: Config) {
     validateRequest,
     googleSheetsHandler
   );
+  app.post("/sign-in", signInHandler);
 
   return app;
 }
