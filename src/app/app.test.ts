@@ -3,9 +3,9 @@ import { resolve } from "node:path";
 import jwt from "jsonwebtoken";
 import request from "supertest";
 
-import { createDatabase, seedInitialData } from "../database";
+import { createDatabase, seedInitialData } from "../database/database";
 import { TABLES } from "../database/schemas";
-import { getDirname } from "../utils";
+import { getDirname } from "../utils/file-utils";
 import { type Config, createApp } from "./app";
 
 const __dirname = getDirname(import.meta.url);

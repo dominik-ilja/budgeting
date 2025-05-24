@@ -1,6 +1,7 @@
 import { Readable } from "node:stream";
-import { CsvHeaderNotFoundError, parseCsv } from "./parse-csv";
+
 import { Mapping } from "../../entities/mapping";
+import { CsvHeaderNotFoundError, parseCsv } from "./parse-csv";
 
 describe("parseCSV", () => {
   function createStream(s: string) {

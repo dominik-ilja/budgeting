@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+
 import type { ImportProfileRepository } from "../../../repositories/import-profile/repository";
 
 interface AuthenticatedRequest extends Request {

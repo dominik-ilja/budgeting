@@ -1,7 +1,8 @@
-import betterSqlite3 from "better-sqlite3";
-import type { Database } from "better-sqlite3";
-import { SCHEMAS, TABLES } from "./schemas";
 import bcrypt from "bcrypt";
+import type { Database } from "better-sqlite3";
+import betterSqlite3 from "better-sqlite3";
+
+import { SCHEMAS, TABLES } from "./schemas";
 
 export const MEMORY = ":memory:";
 

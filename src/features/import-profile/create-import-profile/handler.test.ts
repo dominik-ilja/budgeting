@@ -1,9 +1,10 @@
-import { createPostImportProfileHandler } from "./handler";
-import { SQLiteImportProfileRepository } from "../../../repositories/import-profile/sqlite-repository";
 import { type Database } from "better-sqlite3";
 import type { Response } from "express";
-import { initDatabase, MEMORY } from "../../../database";
+
+import { initDatabase, MEMORY } from "../../../database/database";
+import { SQLiteImportProfileRepository } from "../../../repositories/import-profile/sqlite-repository";
 import { createMockRequest, createMockResponse } from "../../../testing/express";
+import { createPostImportProfileHandler } from "./handler";
 
 describe("post-import-profile-handler", () => {
   let database: Database;

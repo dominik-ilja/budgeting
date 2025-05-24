@@ -3,17 +3,18 @@ import { resolve } from "node:path";
 import dotenv from "dotenv";
 import z from "zod";
 
-import { getDirname } from "../utils";
+import { getDirname } from "../utils/file-utils";
 
 const APP_ENV = process.env.APP_ENV;
+const DIRNAME = getDirname(import.meta.url);
+const ENVIRONMENTS = ["production", "development", "test"];
 
-const __dirname = getDirname(import.meta.url);
 let envName = ".env";
-let configPath = resolve(__dirname, `../../${envName}`);
+let configPath = resolve(DIRNAME, `../../${envName}`);
 
-if (APP_ENV != null && ["production", "development", "test"].includes(APP_ENV)) {
+if (APP_ENV != null && ENVIRONMENTS.includes(APP_ENV)) {
   envName = `.env.${APP_ENV}`;
-  configPath = resolve(__dirname, `../../${envName}`);
+  configPath = resolve(DIRNAME, `../../${envName}`);
 }
 
 const { error } = dotenv.config({ path: configPath });

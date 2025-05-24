@@ -1,8 +1,9 @@
+import jwt from "jsonwebtoken";
+
+import { initDatabase, MEMORY } from "../../database/database";
+import { SqliteUserRepository } from "../../repositories/user/user-repository-sqlite";
 import { createMockRequest, createMockResponse } from "../../testing/express";
 import { createHandler } from "./handler";
-import { initDatabase, MEMORY } from "../../database";
-import jwt from "jsonwebtoken";
-import { SqliteUserRepository } from "../../repositories/user/user-repository-sqlite";
 
 describe("Sign In Handler", () => {
   test("", () => {

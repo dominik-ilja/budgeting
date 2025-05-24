@@ -1,6 +1,7 @@
 import type { Database } from "better-sqlite3";
-import { UserRepository } from "./user-repository-interface";
+
 import { TABLES } from "../../database/schemas";
+import { UserRepository } from "./user-repository-interface";
 
 export type DbUser = {
   id: number;

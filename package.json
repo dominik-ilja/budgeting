@@ -3,11 +3,12 @@
   "type": "module",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/main.js",
   "scripts": {
     "build": "rm -r dist && tsc",
-    "start": "node index.js",
-    "test": "cross-env APP_ENV=test node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "dev": "tsx watch src/main.ts",
+    "lint": "eslint",
+    "test": "cross-env node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:path": "npm run test -- --testPathPattern"
   },
   "keywords": [],
@@ -22,7 +23,6 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.2",
-    "sqlite3": "^5.1.7",
     "zod": "^3.24.2"
   },
   "devDependencies": {
@@ -36,11 +36,11 @@
     "@types/node": "^22.15.14",
     "@types/supertest": "^6.0.3",
     "eslint": "^9.27.0",
+    "eslint-plugin-check-file": "^3.2.0",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "jest": "^29.7.0",
     "supertest": "^7.1.0",
     "ts-jest": "^29.3.2",
-    "ts-node": "^10.9.2",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.32.1"

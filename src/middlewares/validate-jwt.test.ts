@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
-import { createValidateJwt } from "./validate-jwt";
 import jwt from "jsonwebtoken";
+
+import { createValidateJwt } from "./validate-jwt";
 
 function createRequest(headers: Partial<Request["headers"]> = {}) {
   return { headers, body: {} } as unknown as Request;

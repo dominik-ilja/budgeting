@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
-import { MIME_TYPES } from "../../constants/mime-types";
 import { z } from "zod";
+
+import { MIME_TYPES } from "../../constants/mime-types";
 import type { AuthenticatedRequest } from "../../middlewares/validate-jwt";
 
 export type ValidatedRequest = Request &

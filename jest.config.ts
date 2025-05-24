@@ -1,5 +1,5 @@
 import type { Config } from "jest";
-import { TS_EXT_TO_TREAT_AS_ESM, ESM_TS_TRANSFORM_PATTERN } from "ts-jest";
+import { ESM_TS_TRANSFORM_PATTERN, TS_EXT_TO_TREAT_AS_ESM } from "ts-jest";
 
 const config: Config = {
   extensionsToTreatAsEsm: [...TS_EXT_TO_TREAT_AS_ESM],

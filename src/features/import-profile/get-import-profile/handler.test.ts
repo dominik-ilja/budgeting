@@ -1,17 +1,19 @@
+import fs from "node:fs";
+import path from "node:path";
+
 import { jest } from "@jest/globals";
-import { createGetImportProfileHandler } from "./handler";
-import { SQLiteImportProfileRepository } from "../../../repositories/import-profile/sqlite-repository";
+import type { Database } from "better-sqlite3";
 import betterSqlite3 from "better-sqlite3";
 import type { Response } from "express";
-import type { Database } from "better-sqlite3";
+
+import { createTables } from "../../../database/database";
 import { SCHEMAS, TABLES } from "../../../database/schemas";
-import { createTables } from "../../../database";
 import { ImportProfile } from "../../../entities/import-profile";
 import { Mapping } from "../../../entities/mapping";
-import { getDirname } from "../../../utils";
-import path from "node:path";
+import { SQLiteImportProfileRepository } from "../../../repositories/import-profile/sqlite-repository";
 import { createMockRequest, createMockResponse } from "../../../testing/express";
-import fs from "node:fs";
+import { getDirname } from "../../../utils/file-utils";
+import { createGetImportProfileHandler } from "./handler";
 
 const __dirname = getDirname(import.meta.url);
 

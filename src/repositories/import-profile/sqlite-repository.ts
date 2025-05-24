@@ -1,9 +1,10 @@
+import { type Database } from "better-sqlite3";
+
+import { TABLES } from "../../database/schemas";
 import { ImportProfile } from "../../entities/import-profile";
 import { Mapping } from "../../entities/mapping";
-import { ImportProfileRepository, CreateResult } from "./repository";
 import { TargetTable } from "../../entities/target-table";
-import { TABLES } from "../../database/schemas";
-import { type Database } from "better-sqlite3";
+import { CreateResult,ImportProfileRepository } from "./repository";
 
 type QueryEntry = {
   id: number;

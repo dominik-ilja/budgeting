@@ -1,7 +1,8 @@
-import path from "node:path";
 import fs from "node:fs";
-import { initDatabase, type InitDatabaseOpts } from "./index";
-import { getDirname } from "../utils";
+import path from "node:path";
+
+import { getDirname } from "../utils/file-utils";
+import { initDatabase, type InitDatabaseOpts } from "./database";
 import { TABLES } from "./schemas";
 
 type Role = { id: number; name: string; description: string };

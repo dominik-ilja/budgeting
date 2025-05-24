@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
-import type { ImportProfileRepository } from "../../../repositories/import-profile/repository";
+
 import type { AuthenticatedRequest } from "../../../middlewares/validate-jwt";
+import type { ImportProfileRepository } from "../../../repositories/import-profile/repository";
 import { purchaseProfileSchema } from "./schemas/purchase-profile-schema";
 
 export function createPostImportProfileHandler(

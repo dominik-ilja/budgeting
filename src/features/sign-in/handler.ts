@@ -1,6 +1,7 @@
-import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
+import type { Request, Response } from "express";
 import jwt from "jsonwebtoken";
+
 import type { UserRepository } from "../../repositories/user/user-repository-interface";
 
 export function createHandler(repository: UserRepository, secret: string) {

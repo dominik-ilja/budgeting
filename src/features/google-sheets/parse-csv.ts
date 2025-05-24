@@ -1,6 +1,8 @@
 import type { Readable } from "node:stream";
-import type { Mapping } from "../../entities/mapping";
+
 import csv from "csv-parser";
+
+import type { Mapping } from "../../entities/mapping";
 
 /**
  * @throws {Error} If input cannot be parsed to a float

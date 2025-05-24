@@ -1,11 +1,12 @@
-import { initDatabase, MEMORY } from "../../database";
+import fs from "node:fs";
+import { resolve } from "node:path";
+
+import { initDatabase, MEMORY } from "../../database/database";
 import { Mapping } from "../../entities/mapping";
 import { SQLiteImportProfileRepository } from "../../repositories/import-profile/sqlite-repository";
 import { createMockRequest, createMockResponse } from "../../testing/express";
-import fs from "node:fs";
+import { getDirname } from "../../utils/file-utils";
 import { createCsvToGoogleSheetsHandler } from "./handler";
-import { resolve } from "node:path";
-import { getDirname } from "../../utils";
 
 const __dirname = getDirname(import.meta.url);
 

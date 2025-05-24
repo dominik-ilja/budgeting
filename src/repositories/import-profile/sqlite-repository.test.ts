@@ -1,10 +1,11 @@
 import type { Database } from "better-sqlite3";
-import { initDatabase, MEMORY } from "../../database";
+
+import { initDatabase, MEMORY } from "../../database/database";
 import { ImportProfile } from "../../entities/import-profile";
 import { Mapping } from "../../entities/mapping";
+import { TargetTable } from "../../entities/target-table";
 import { seedImportProfiles } from "../../testing/database";
 import { SQLiteImportProfileRepository } from "./sqlite-repository";
-import { TargetTable } from "../../entities/target-table";
 
 // I should write some code that initializes
 

@@ -1,9 +1,11 @@
-import type { Request, Response } from "express";
-import type { ImportProfileRepository } from "../../repositories/import-profile/repository";
-import type { ValidatedRequest } from "./validate-request";
-import { CsvHeaderNotFoundError, parseCsv } from "./parse-csv";
 import { Readable } from "node:stream";
+
+import type { Request, Response } from "express";
+
+import type { ImportProfileRepository } from "../../repositories/import-profile/repository";
+import { CsvHeaderNotFoundError, parseCsv } from "./parse-csv";
 import { formatRowsAsTsv } from "./tsv-formatter";
+import type { ValidatedRequest } from "./validate-request";
 
 const rowOrder = { date: 1, description: 2, amount: 3, category: 4 };
 
