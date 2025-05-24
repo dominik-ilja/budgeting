@@ -1,10 +1,9 @@
 import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import type { Database } from "better-sqlite3";
-import { TABLES } from "../../database/schemas";
 import jwt from "jsonwebtoken";
+import type { UserRepository } from "../../repositories/user/user-repository-interface";
 
-export function createHandler(database: Database, secret: string) {
+export function createHandler(repository: UserRepository, secret: string) {
   return (req: Request, res: Response) => {
     const auth = req.headers.authorization;
 
@@ -30,16 +29,21 @@ export function createHandler(database: Database, secret: string) {
 
     try {
       const [username, password] = credentials;
-      const query = `SELECT * FROM ${TABLES.USERS} WHERE username = @username`;
-      const result = database.prepare(query).get({ username }) as any;
-      const passwordsMatch = bcrypt.compareSync(password, result.password);
+      const user = repository.getByUsername(username);
+
+      if (!user) {
+        res.sendStatus(401);
+        return;
+      }
+
+      const passwordsMatch = bcrypt.compareSync(password, user.password);
 
       if (!passwordsMatch) {
         res.sendStatus(401);
         return;
       }
 
-      const payload = { user: { id: result.id } };
+      const payload = { user: { id: user.id } };
       const token = jwt.sign(payload, secret, { expiresIn: "1h" });
 
       res.send({ token });

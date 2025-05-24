@@ -1,15 +1,17 @@
 import { resolve } from "node:path";
+
 import dotenv from "dotenv";
 import z from "zod";
+
 import { getDirname } from "../utils";
 
 const APP_ENV = process.env.APP_ENV;
-const __dirname = getDirname(import.meta.url);
 
+const __dirname = getDirname(import.meta.url);
 let envName = ".env";
 let configPath = resolve(__dirname, `../../${envName}`);
 
-if (["production", "development", "test"].includes(APP_ENV)) {
+if (APP_ENV != null && ["production", "development", "test"].includes(APP_ENV)) {
   envName = `.env.${APP_ENV}`;
   configPath = resolve(__dirname, `../../${envName}`);
 }
@@ -24,7 +26,12 @@ const schema = z.object({
   DB_PATH: z.string(),
   JWT_EXPIRES_IN: z.string(),
   JWT_SECRET: z.string().min(20),
-  PORT: z.preprocess((val) => parseInt(val, 10), z.number()),
+  PORT: z.preprocess((val) => {
+    if (typeof val === "string") {
+      return parseInt(val, 10);
+    }
+    return val;
+  }, z.number()),
 });
 const parsedEnv = schema.safeParse(process.env);
 

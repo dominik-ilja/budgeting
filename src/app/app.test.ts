@@ -1,10 +1,12 @@
-import { createApp, type Config } from "./app";
-import request from "supertest";
+import { resolve } from "node:path";
+
 import jwt from "jsonwebtoken";
+import request from "supertest";
+
 import { createDatabase, seedInitialData } from "../database";
 import { TABLES } from "../database/schemas";
 import { getDirname } from "../utils";
-import { resolve } from "node:path";
+import { type Config, createApp } from "./app";
 
 const __dirname = getDirname(import.meta.url);
 

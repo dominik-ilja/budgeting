@@ -2,6 +2,7 @@ import { createMockRequest, createMockResponse } from "../../testing/express";
 import { createHandler } from "./handler";
 import { initDatabase, MEMORY } from "../../database";
 import jwt from "jsonwebtoken";
+import { SqliteUserRepository } from "../../repositories/user/user-repository-sqlite";
 
 describe("Sign In Handler", () => {
   test("", () => {
@@ -24,8 +25,9 @@ describe("Sign In Handler", () => {
         adminUsername: username,
       },
     });
+    const repository = new SqliteUserRepository(database);
     const secret = "secret";
-    const handler = createHandler(database, secret);
+    const handler = createHandler(repository, secret);
 
     handler(req, res);
 

@@ -1,3 +1,6 @@
+import type { User } from "../../entities/user";
+
 export interface UserRepository {
-  getById(id: number): any; // todo: update to exact type once we know it
+  getById(id: number): User | null;
+  getByUsername(id: string): User | null;
 }

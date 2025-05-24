@@ -1,6 +1,6 @@
 import { createApp } from "./app/app";
-import { initDatabase } from "./database";
 import { env } from "./config/env";
+import { initDatabase } from "./database";
 
 const database = initDatabase({
   filename: env.DB_PATH,

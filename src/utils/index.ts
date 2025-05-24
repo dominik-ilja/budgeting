@@ -1,18 +1,18 @@
-import { fileURLToPath } from "url";
 import { dirname } from "path";
+import { fileURLToPath } from "url";
 
 /**
  * @example
  * getFilename(import.meta.url)
  */
-export function getFilename(metaUrl: string) {
-  return fileURLToPath(metaUrl);
+export function getFilename(url: string | URL) {
+  return fileURLToPath(url);
 }
 
 /**
  * @example
  * getDirname(import.meta.url)
  */
-export function getDirname(metaUrl: string) {
-  return dirname(getFilename(metaUrl));
+export function getDirname(url: string | URL) {
+  return dirname(getFilename(url));
 }
