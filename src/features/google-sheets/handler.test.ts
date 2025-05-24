@@ -5,7 +5,7 @@ import { initDatabase, MEMORY } from "../../database/database";
 import { Mapping } from "../../entities/mapping";
 import { SqliteImportProfileRepository } from "../../repositories/import-profile/sqlite-repository";
 import { createMockRequest, createMockResponse } from "../../testing/express";
-import { getDirname } from "../../utils/file-utils";
+import { getDirname } from "../../utils/file-system";
 import { createHandler } from "./handler";
 
 const __dirname = getDirname(import.meta.url);

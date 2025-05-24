@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { getDirname } from "../utils/file-utils";
+import { getDirname } from "../utils/file-system";
 import { initDatabase, type InitDatabaseOpts } from "./database";
 import { TABLES } from "./schemas";
 

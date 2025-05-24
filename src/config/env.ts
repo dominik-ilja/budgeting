@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import dotenv from "dotenv";
 import z from "zod";
 
-import { getDirname } from "../utils/file-utils";
+import { getDirname } from "../utils/file-system";
 
 const APP_ENV = process.env.APP_ENV;
 const DIRNAME = getDirname(import.meta.url);

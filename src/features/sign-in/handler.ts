@@ -9,7 +9,7 @@ export function createHandler(repository: UserRepository, secret: string) {
     const auth = req.headers.authorization;
 
     if (!auth) {
-      // be more specific in this
+      // todo: be more specific in this
       res.sendStatus(401);
       return;
     }
