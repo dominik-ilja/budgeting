@@ -4,7 +4,7 @@ import { TABLES } from "../../database/schemas";
 import { ImportProfile } from "../../entities/import-profile";
 import { Mapping } from "../../entities/mapping";
 import { TargetTable } from "../../entities/target-table";
-import { CreateResult,ImportProfileRepository } from "./repository";
+import { CreateResult, ImportProfileRepository } from "./repository";
 
 type QueryEntry = {
   id: number;
@@ -14,7 +14,7 @@ type QueryEntry = {
   type: "date" | "number" | "string";
 };
 
-export class SQLiteImportProfileRepository implements ImportProfileRepository {
+export class SqliteImportProfileRepository implements ImportProfileRepository {
   #db;
 
   constructor(db: Database) {

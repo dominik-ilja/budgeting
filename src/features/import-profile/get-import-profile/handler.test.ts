@@ -10,7 +10,7 @@ import { createTables } from "../../../database/database";
 import { SCHEMAS, TABLES } from "../../../database/schemas";
 import { ImportProfile } from "../../../entities/import-profile";
 import { Mapping } from "../../../entities/mapping";
-import { SQLiteImportProfileRepository } from "../../../repositories/import-profile/sqlite-repository";
+import { SqliteImportProfileRepository } from "../../../repositories/import-profile/sqlite-repository";
 import { createMockRequest, createMockResponse } from "../../../testing/express";
 import { getDirname } from "../../../utils/file-utils";
 import { createGetImportProfileHandler } from "./handler";
@@ -57,12 +57,12 @@ function setupDatabase(db: Database) {
 describe("get-import-profile-handler", () => {
   const databasePath = path.resolve(__dirname, "database.db");
   let database: Database;
-  let repository: SQLiteImportProfileRepository;
+  let repository: SqliteImportProfileRepository;
   let res: Response;
 
   beforeEach(() => {
     database = betterSqlite3(databasePath);
-    repository = new SQLiteImportProfileRepository(database);
+    repository = new SqliteImportProfileRepository(database);
     res = createMockResponse({
       sendStatus: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),

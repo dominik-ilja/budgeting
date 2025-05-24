@@ -5,7 +5,7 @@ import { ImportProfile } from "../../entities/import-profile";
 import { Mapping } from "../../entities/mapping";
 import { TargetTable } from "../../entities/target-table";
 import { seedImportProfiles } from "../../testing/database";
-import { SQLiteImportProfileRepository } from "./sqlite-repository";
+import { SqliteImportProfileRepository } from "./sqlite-repository";
 
 // I should write some code that initializes
 
@@ -30,7 +30,7 @@ describe("SQLite Import Profile Repository", () => {
     ]),
   ];
   let database: Database;
-  let repository: SQLiteImportProfileRepository;
+  let repository: SqliteImportProfileRepository;
 
   beforeEach(() => {
     database = initDatabase({
@@ -41,7 +41,7 @@ describe("SQLite Import Profile Repository", () => {
       },
     });
     seedImportProfiles(database);
-    repository = new SQLiteImportProfileRepository(database);
+    repository = new SqliteImportProfileRepository(database);
   });
   afterEach(() => {
     database.close();

@@ -3,10 +3,10 @@ import { resolve } from "node:path";
 
 import { initDatabase, MEMORY } from "../../database/database";
 import { Mapping } from "../../entities/mapping";
-import { SQLiteImportProfileRepository } from "../../repositories/import-profile/sqlite-repository";
+import { SqliteImportProfileRepository } from "../../repositories/import-profile/sqlite-repository";
 import { createMockRequest, createMockResponse } from "../../testing/express";
 import { getDirname } from "../../utils/file-utils";
-import { createCsvToGoogleSheetsHandler } from "./handler";
+import { createHandler } from "./handler";
 
 const __dirname = getDirname(import.meta.url);
 
@@ -15,7 +15,9 @@ describe("Google Sheets handler", () => {
     const req = createMockRequest({
       body: { importProfileId: 1 },
       file: {
-        buffer: fs.readFileSync(resolve(__dirname, "./__fixtures__/chase-checkings.csv")),
+        buffer: fs.readFileSync(
+          resolve(__dirname, "../../testing/__fixtures__/chase-checkings.csv")
+        ),
       },
       user: { id: 1 },
     });
@@ -31,13 +33,13 @@ describe("Google Sheets handler", () => {
         adminUsername: "admin",
       },
     });
-    const repository = new SQLiteImportProfileRepository(database);
+    const repository = new SqliteImportProfileRepository(database);
     repository.create(1, 1, "Chase Checkings", [
       new Mapping("Posting Date", "date", "date"),
       new Mapping("Description", "description", "string"),
       new Mapping("Amount", "amount", "number"),
     ]);
-    const handler = createCsvToGoogleSheetsHandler(repository);
+    const handler = createHandler(repository);
     const expected = `2025-03-20\tPaycheck\t1500.00
 2025-03-21\tGrocery Store\t75.50
 2025-03-22\tGas Station\t40.00

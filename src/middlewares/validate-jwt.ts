@@ -2,9 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
 export interface AuthenticatedRequest extends Request {
-  user: {
-    id: number;
-  };
+  user: { id: number };
 }
 
 export function createValidateJwt(secret: string) {

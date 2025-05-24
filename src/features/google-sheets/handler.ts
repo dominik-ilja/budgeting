@@ -3,15 +3,15 @@ import { Readable } from "node:stream";
 import type { Request, Response } from "express";
 
 import type { ImportProfileRepository } from "../../repositories/import-profile/repository";
-import { CsvHeaderNotFoundError, parseCsv } from "./parse-csv";
-import { formatRowsAsTsv } from "./tsv-formatter";
-import type { ValidatedRequest } from "./validate-request";
+import { CsvHeaderNotFoundError } from "./errors";
+import { formatRowsAsTsv, parseCsv } from "./service";
+import type { ValidatedRequest } from "./validation";
 
-const rowOrder = { date: 1, description: 2, amount: 3, category: 4 };
+const DEFAULT_ROW_ORDER = { date: 1, description: 2, amount: 3, category: 4 } as const;
 
-export function createCsvToGoogleSheetsHandler(repository: ImportProfileRepository) {
+export function createHandler(repository: ImportProfileRepository) {
   return async (req: Request, res: Response) => {
-    const _req = req as ValidatedRequest; // todo: fix types like id and body showing as any
+    const _req = req as ValidatedRequest;
     const importProfile = repository.getById(_req.user.id, _req.body.importProfileId);
 
     if (!importProfile) {
@@ -22,8 +22,8 @@ export function createCsvToGoogleSheetsHandler(repository: ImportProfileReposito
     try {
       const stream = Readable.from(_req.file.buffer);
       const rows = await parseCsv(stream, importProfile.mappings);
-      const googleSheets = formatRowsAsTsv(rows, rowOrder);
-      res.send(googleSheets);
+      const tsv = formatRowsAsTsv(rows, DEFAULT_ROW_ORDER);
+      res.send(tsv);
     } catch (error) {
       if (error instanceof CsvHeaderNotFoundError) {
         res.status(404).send(error.message);

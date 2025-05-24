@@ -2,13 +2,13 @@ import { type Database } from "better-sqlite3";
 import type { Response } from "express";
 
 import { initDatabase, MEMORY } from "../../../database/database";
-import { SQLiteImportProfileRepository } from "../../../repositories/import-profile/sqlite-repository";
+import { SqliteImportProfileRepository } from "../../../repositories/import-profile/sqlite-repository";
 import { createMockRequest, createMockResponse } from "../../../testing/express";
 import { createPostImportProfileHandler } from "./handler";
 
 describe("post-import-profile-handler", () => {
   let database: Database;
-  let repository: SQLiteImportProfileRepository;
+  let repository: SqliteImportProfileRepository;
   let res: Response;
 
   beforeEach(() => {
@@ -16,7 +16,7 @@ describe("post-import-profile-handler", () => {
       filename: MEMORY,
       seed: { adminPassword: "password", adminUsername: "admin" },
     });
-    repository = new SQLiteImportProfileRepository(database);
+    repository = new SqliteImportProfileRepository(database);
     res = createMockResponse({
       sendStatus: jest.fn().mockReturnThis(),
       status: jest.fn().mockReturnThis(),
