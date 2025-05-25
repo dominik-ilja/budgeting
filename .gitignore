@@ -2,3 +2,11 @@ node_modules
 notes.md
 temp
 temp.js
+.env
+.env.test
+.env.development
+.env.production
+.temp
+temp.db
+dist
+.vscode
