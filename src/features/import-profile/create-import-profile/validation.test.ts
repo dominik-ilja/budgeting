@@ -1,4 +1,4 @@
-import { purchaseProfileSchema } from "./purchase-profile-schema";
+import { purchaseProfileSchema } from "./validation";
 
 describe("Purchase Profile Schema", () => {
   test.each([

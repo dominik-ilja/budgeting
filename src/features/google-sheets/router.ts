@@ -1,22 +1,30 @@
-import { Router } from "express";
+import { type RequestHandler, Router } from "express";
 import multer from "multer";
 
-import { createValidateJwt } from "../../middlewares/validate-jwt";
-import type { ImportProfileRepository } from "../../repositories/import-profile/repository";
-import { createHandler } from "./handler";
+import type { ImportProfileRepository } from "../../repositories/import-profile/interface";
+import { PostGoogleSheetsController } from "./controller";
 import { validateRequest } from "./validation";
 
 export const FILE_UPLOAD_NAME = "file";
 
-export function createGoogleSheetsRouter(secret: string, repo: ImportProfileRepository) {
+type Config = {
+  validateJwt: RequestHandler;
+  repository: ImportProfileRepository;
+  upload: multer.Multer;
+};
+
+export function createGoogleSheetsRouter({ repository, upload, validateJwt }: Config) {
   const router = Router();
-  const validateJwt = createValidateJwt(secret);
-  const upload = multer({ storage: multer.memoryStorage() });
-  const handler = createHandler(repo);
+  const controller = new PostGoogleSheetsController(repository);
 
   router
     .route("/")
-    .post(validateJwt, upload.single(FILE_UPLOAD_NAME), validateRequest, handler);
+    .post(
+      validateJwt,
+      upload.single(FILE_UPLOAD_NAME),
+      validateRequest,
+      controller.convertCsvToTsv
+    );
 
   return router;
 }

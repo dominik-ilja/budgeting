@@ -3,7 +3,7 @@ import betterSqlite, { type Database } from "better-sqlite3";
 import { MEMORY } from "../../database/database";
 import { SCHEMAS, TABLES } from "../../database/schemas";
 import { User } from "../../entities/user";
-import { SqliteUserRepository } from "./user-repository-sqlite";
+import { SqliteUserRepository } from "./sqlite-repository";
 
 describe("User Repository SQLite", () => {
   const role = "admin";

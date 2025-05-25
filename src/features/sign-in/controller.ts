@@ -2,14 +2,21 @@ import bcrypt from "bcrypt";
 import type { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
-import type { UserRepository } from "../../repositories/user/user-repository-interface";
+import type { UserRepository } from "../../repositories/user/interface";
 
-export function createHandler(repository: UserRepository, secret: string) {
-  return (req: Request, res: Response) => {
+export class SignInController {
+  #repo: UserRepository;
+  #secret: string;
+
+  constructor(repo: UserRepository, secret: string) {
+    this.#repo = repo;
+    this.#secret = secret;
+  }
+
+  signIn(req: Request, res: Response) {
     const auth = req.headers.authorization;
 
     if (!auth) {
-      // todo: be more specific in this
       res.sendStatus(401);
       return;
     }
@@ -30,27 +37,27 @@ export function createHandler(repository: UserRepository, secret: string) {
 
     try {
       const [username, password] = credentials;
-      const user = repository.getByUsername(username);
+      const user = this.#repo.getByUsername(username);
 
       if (!user) {
         res.sendStatus(401);
         return;
       }
 
-      const passwordsMatch = bcrypt.compareSync(password, user.password);
+      const match = bcrypt.compareSync(password, user.password);
 
-      if (!passwordsMatch) {
+      if (!match) {
         res.sendStatus(401);
         return;
       }
 
       const payload = { user: { id: user.id } };
-      const token = jwt.sign(payload, secret, { expiresIn: "1h" });
+      const token = jwt.sign(payload, this.#secret, { expiresIn: "1h" }); // todo: pass in expiration time
 
-      res.send({ token });
+      res.json({ token });
     } catch (error) {
       console.log(error);
       res.sendStatus(500);
     }
-  };
+  }
 }

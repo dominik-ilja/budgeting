@@ -6,11 +6,11 @@ import { Mapping } from "../../entities/mapping";
 import { SqliteImportProfileRepository } from "../../repositories/import-profile/sqlite-repository";
 import { createMockRequest, createMockResponse } from "../../testing/express";
 import { getDirname } from "../../utils/file-system";
-import { createHandler } from "./handler";
+import { PostGoogleSheetsController } from "./controller";
 
 const __dirname = getDirname(import.meta.url);
 
-describe("Google Sheets handler", () => {
+describe("Post Google Sheets Controller", () => {
   test("", async () => {
     const req = createMockRequest({
       body: { importProfileId: 1 },
@@ -22,7 +22,7 @@ describe("Google Sheets handler", () => {
       user: { id: 1 },
     });
     const res = createMockResponse({
-      send: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
       sendStatus: jest.fn().mockReturnThis(),
       status: jest.fn().mockReturnThis(),
     });
@@ -39,7 +39,7 @@ describe("Google Sheets handler", () => {
       new Mapping("Description", "description", "string"),
       new Mapping("Amount", "amount", "number"),
     ]);
-    const handler = createHandler(repository);
+    const controller = new PostGoogleSheetsController(repository);
     const expected = `2025-03-20\tPaycheck\t1500.00
 2025-03-21\tGrocery Store\t75.50
 2025-03-22\tGas Station\t40.00
@@ -51,8 +51,8 @@ describe("Google Sheets handler", () => {
 2025-03-28\tTax Refund\t800.00
 2025-03-29\tCar Maintenance\t250.00`;
 
-    await handler(req, res);
+    await controller.convertCsvToTsv(req, res);
 
-    expect(res.send).toHaveBeenCalledWith(expected);
+    expect(res.json).toHaveBeenCalledWith(expected);
   });
 });

@@ -4,7 +4,7 @@ import type { Response } from "express";
 import { initDatabase, MEMORY } from "../../../database/database";
 import { SqliteImportProfileRepository } from "../../../repositories/import-profile/sqlite-repository";
 import { createMockRequest, createMockResponse } from "../../../testing/express";
-import { createPostImportProfileHandler } from "./handler";
+import { CreateImportProfileController } from "./controller";
 
 describe("post-import-profile-handler", () => {
   let database: Database;
@@ -29,7 +29,7 @@ describe("post-import-profile-handler", () => {
   });
 
   test("Handles valid requests", () => {
-    const handler = createPostImportProfileHandler(repository);
+    const controller = new CreateImportProfileController(repository);
     const req = createMockRequest({
       user: {
         id: 1,
@@ -47,7 +47,7 @@ describe("post-import-profile-handler", () => {
     });
     const expected = { id: 1 };
 
-    handler(req, res);
+    controller.create(req, res);
 
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith(expected);

@@ -4,7 +4,7 @@ import { TABLES } from "../../database/schemas";
 import { ImportProfile } from "../../entities/import-profile";
 import { Mapping } from "../../entities/mapping";
 import { TargetTable } from "../../entities/target-table";
-import { CreateResult, ImportProfileRepository } from "./repository";
+import { CreateResult, ImportProfileRepository } from "./interface";
 
 type QueryEntry = {
   id: number;

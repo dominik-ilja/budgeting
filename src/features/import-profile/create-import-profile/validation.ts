@@ -39,7 +39,7 @@ export const purchaseProfileSchema = z.object({
       },
       {
         message:
-          "Mappings must include amount, description, and date. 'Category' is optional. No duplicate targets allowed.",
+          "Mappings must include amount, description, and date. 'Category' is optional. No duplicate targets are allowed.",
       }
     )
     .refine(

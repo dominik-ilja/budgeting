@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken";
 
 import { initDatabase, MEMORY } from "../../database/database";
-import { SqliteUserRepository } from "../../repositories/user/user-repository-sqlite";
+import { SqliteUserRepository } from "../../repositories/user/sqlite-repository";
 import { createMockRequest, createMockResponse } from "../../testing/express";
-import { createHandler } from "./handler";
+import { SignInController } from "./controller";
 
 describe("Sign In Handler", () => {
   test("", () => {
@@ -16,7 +16,7 @@ describe("Sign In Handler", () => {
       },
     });
     const res = createMockResponse({
-      send: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
       sendStatus: jest.fn().mockReturnThis(),
     });
     const database = initDatabase({
@@ -28,13 +28,13 @@ describe("Sign In Handler", () => {
     });
     const repository = new SqliteUserRepository(database);
     const secret = "secret";
-    const handler = createHandler(repository, secret);
+    const controller = new SignInController(repository, secret);
 
-    handler(req, res);
+    controller.signIn(req, res);
 
-    const token = (res.send as jest.Mock).mock.calls[0][0].token;
+    const token = (res.json as jest.Mock).mock.calls[0][0].token;
     const data = jwt.decode(token) as jwt.JwtPayload;
-    expect(res.send).toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalled();
     expect(data.user).toEqual({ id: 1 });
   });
 });

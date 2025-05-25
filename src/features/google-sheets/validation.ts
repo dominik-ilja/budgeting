@@ -14,7 +14,7 @@ export type ValidatedRequest = Request &
 
 export function validateRequest(req: Request, res: Response, next: NextFunction) {
   if (!req.file || req.file.mimetype !== MIME_TYPES.CSV) {
-    res.status(400).send("CSV file is required");
+    res.status(400).json("CSV file is required");
     return;
   }
 
@@ -22,7 +22,7 @@ export function validateRequest(req: Request, res: Response, next: NextFunction)
   const validationResult = z.coerce.number().min(0).safeParse(importId);
 
   if (!validationResult.success) {
-    res.status(400).send(`Invalid importProfileId: "${importId}"`);
+    res.status(400).json(`Invalid importProfileId: "${importId}"`);
     return;
   }
 

@@ -13,7 +13,7 @@ import { Mapping } from "../../../entities/mapping";
 import { SqliteImportProfileRepository } from "../../../repositories/import-profile/sqlite-repository";
 import { createMockRequest, createMockResponse } from "../../../testing/express";
 import { getDirname } from "../../../utils/file-system";
-import { createGetImportProfileHandler } from "./handler";
+import { GetImportProfileController } from "./controller";
 
 const __dirname = getDirname(import.meta.url);
 
@@ -107,13 +107,13 @@ describe("get-import-profile-handler", () => {
   ])(
     "Returns the correct import profile - userId: %s, importProfileId: %s",
     (userId, importProfileId, expected) => {
-      const handler = createGetImportProfileHandler(repository);
+      const controller = new GetImportProfileController(repository);
       const req = createMockRequest({
         user: { id: userId },
         params: { id: importProfileId },
       });
 
-      handler(req, res);
+      controller.getById(req, res);
 
       expect(res.json).toHaveBeenCalledWith(expected);
     }
@@ -125,13 +125,13 @@ describe("get-import-profile-handler", () => {
   ])(
     "Returns a 404 when the importProfile doesn't exist - userId: %s, importProfileId: %s",
     (userId, importProfileId) => {
-      const handler = createGetImportProfileHandler(repository);
+      const controller = new GetImportProfileController(repository);
       const req = createMockRequest({
         user: { id: userId },
         params: { id: importProfileId },
       });
 
-      handler(req, res);
+      controller.getById(req, res);
 
       expect(res.sendStatus).toHaveBeenCalledWith(404);
     }

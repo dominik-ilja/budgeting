@@ -1,4 +1,4 @@
-import type { DbUser } from "../repositories/user/user-repository-sqlite";
+import type { DbUser } from "../repositories/user/sqlite-repository";
 
 export class User {
   id: number;
