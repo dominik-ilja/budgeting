@@ -6,6 +6,8 @@ import { Mapping } from "../../entities/mapping";
 import { TargetTable } from "../../entities/target-table";
 import { CreateResult, ImportProfileRepository } from "./interface";
 
+type RequireOnly<T, K extends keyof T> = Partial<Omit<T, K>> & Pick<T, K>;
+
 type QueryEntry = {
   id: number;
   name: string;
@@ -151,4 +153,15 @@ export class SqliteImportProfileRepository implements ImportProfileRepository {
       };
     }
   }
+  // update({}: { importProfileId: number; name?: string; mappings?: RequireOnly<typeof Mapping, "id">[] }) {
+  //   try {
+  //     this.#db.prepare("BEGIN").run();
+
+  //     // we need to check what information is added
+
+  //     this.#db.prepare("COMMIT").run();
+  //   } catch (error) {
+  //     this.#db.prepare("ROLLBACK").run();
+  //   }
+  // }
 }
