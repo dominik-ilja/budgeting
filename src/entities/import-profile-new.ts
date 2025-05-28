@@ -1,5 +1,6 @@
-import type { Mapping } from "./mapping";
 import assert from "node:assert";
+
+import type { Mapping } from "./mapping";
 
 function isEmptyOrWhitespace(s: string) {
   return s.length === 0 || s.trim().length === 0;
